@@ -244,6 +244,22 @@ Status: in progress.
   preferences through `DesktopOnboardingPlatform`.
 - [x] Library + history: add shared list/history screens wired to the SQLDelight
   `LibraryRepository`, with shared favourite toggle and clear-history actions.
+- [x] Explore / streaming: add desktop Explore route backed by the shared Ktor
+  InnerTube search catalog; selecting an online song creates a desktop VLC
+  playback queue.
+- [x] Mini player + full player: add shared player surfaces and wire them to the
+  desktop playback controller, including seeking, repeat, transport, and an
+  artwork-safe fallback surface.
+- [x] Queue: add the shared desktop queue drawer and play-at queue actions.
+- [x] Lyrics: add the shared karaoke line surface; provider fetching and current
+  track binding still need to be connected to populate it automatically.
+- [x] Effects: add desktop controls for the supported VLC effects contract.
+- [x] Settings: route the desktop navigation to the shared adaptive settings UI.
+- [x] Tag editor: add a desktop tag editor backed by jaudiotagger for local
+  title, artist, and album metadata.
+- [ ] Song actions, animated mesh background, artwork loading, lyrics-fetch
+  binding, account screen, playlist management UI, and desktop libVLC packaging
+  remain in the active Phase 3/Phase 2 queue.
 
 ### Verification log
 
@@ -264,3 +280,4 @@ Status: in progress.
 | 2026-08-13 | desktop compile retry with 1 GiB heap and parallelism disabled | blocked | Gradle reaches root-project configuration but cannot write its cache: `/tmp` reports `Disk quota exceeded`. No Kotlin compiler result is available. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | VLCJ playback controller, dual-player crossfade, and the supported desktop DSP controls compile successfully. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Shared nine-step onboarding and desktop first-run route compile successfully. |
+| 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Shared player/queue/lyrics shells, Explore stream hand-off, Effects, Settings route, and desktop tag editor compile successfully. |

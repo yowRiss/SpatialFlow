@@ -32,6 +32,8 @@ import androidx.compose.material.icons.outlined.PlaylistPlay
 import androidx.compose.material.icons.outlined.QueueMusic
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material3.Button
@@ -71,6 +73,15 @@ import com.codetrio.spatialflow.shared.library.LocalMusicLibrary
 import com.codetrio.spatialflow.shared.model.SongItem
 import com.codetrio.spatialflow.shared.player.PlaybackController
 import com.codetrio.spatialflow.shared.player.PlayerCommand
+import com.codetrio.spatialflow.shared.player.PlayerUiState
+import com.codetrio.spatialflow.shared.data.innertube.MusicCatalog
+import com.codetrio.spatialflow.shared.ui.explore.ExploreScreen
+import com.codetrio.spatialflow.shared.ui.player.EffectsScreen
+import com.codetrio.spatialflow.shared.ui.SpatialFlowApp
+import com.codetrio.spatialflow.shared.ui.player.FullPlayer
+import com.codetrio.spatialflow.shared.ui.player.MiniPlayer
+import com.codetrio.spatialflow.shared.ui.player.QueueDrawer
+import com.codetrio.spatialflow.shared.ui.player.SyncedLyrics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -84,7 +95,7 @@ import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
 
 private enum class DesktopDestination(val label: String) {
-    Home("Home"), Library("Library"), Favourites("Favourites"), Queue("Queue"), Settings("Settings")
+    Home("Home"), Explore("Explore"), Library("Library"), Favourites("Favourites"), Queue("Queue"), Effects("Effects"), Tags("Tags"), Settings("Settings")
 }
 
 private data class DesktopTrack(
@@ -118,6 +129,8 @@ private class DesktopPlayerViewModel {
     private val persistenceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val preferences = Preferences.userRoot().node("com/codetrio/spatialflow")
     private val playbackController: PlaybackController = GlobalContext.get().get()
+    private val musicCatalog: MusicCatalog = GlobalContext.get().get()
+    private var streamingQueue: List<SongItem> = emptyList()
     private var selectedIndex = -1
     var state by mutableStateOf(loadInitialState())
         private set
@@ -189,6 +202,15 @@ private class DesktopPlayerViewModel {
     }
 
     fun close() { playbackController.release() }
+    fun playerState(): PlayerUiState = playbackController.state.value
+    fun playerQueue(): List<SongItem> = streamingQueue.ifEmpty { state.queue.map(::asSong) }
+    fun controller(): PlaybackController = playbackController
+    fun catalog(): MusicCatalog = musicCatalog
+    fun playOnline(song: SongItem) {
+        streamingQueue = listOf(song)
+        playbackController.setQueue(streamingQueue)
+        playbackController.dispatch(PlayerCommand.PlayAt(0))
+    }
 
     private fun moveBy(offset: Int) {
         val queue = state.queue.ifEmpty { state.library }
@@ -281,6 +303,7 @@ private fun Int.floorMod(modulus: Int) = ((this % modulus) + modulus) % modulus
 fun DesktopSpatialFlowApp() = SharedTheme {
     val viewModel = remember { DesktopPlayerViewModel() }
     val state = viewModel.state
+    var playerSurface by remember { mutableStateOf(DesktopPlayerSurface.None) }
     DisposableEffect(Unit) { onDispose(viewModel::close) }
     LaunchedEffect(state.isPlaying) {
         while (state.isPlaying) {
@@ -293,21 +316,32 @@ fun DesktopSpatialFlowApp() = SharedTheme {
         DesktopNavigationRail(state.destination, viewModel::selectDestination)
         Scaffold(
             modifier = Modifier.weight(1f),
-            bottomBar = { NowPlayingBar(state, viewModel) },
+            bottomBar = { MiniPlayer(viewModel.playerState(), viewModel.controller()) { playerSurface = DesktopPlayerSurface.Player } },
         ) { padding ->
             Column(Modifier.fillMaxSize().padding(padding)) {
                 state.notice?.let { Notice(it) }
                 when (state.destination) {
                     DesktopDestination.Home -> HomeScreen(state, viewModel)
+                    DesktopDestination.Explore -> ExploreScreen(viewModel.catalog(), viewModel::playOnline)
                     DesktopDestination.Library -> LibraryScreen(state, viewModel)
                     DesktopDestination.Favourites -> FavouritesScreen(state, viewModel)
                     DesktopDestination.Queue -> QueueScreen(state, viewModel)
-                    DesktopDestination.Settings -> DesktopSettingsScreen(state, viewModel)
+                    DesktopDestination.Effects -> EffectsScreen(viewModel.controller())
+                    DesktopDestination.Tags -> DesktopTagEditor(viewModel.playerState().currentSong) { message -> viewModel.selectDestination(DesktopDestination.Tags) }
+                    DesktopDestination.Settings -> SpatialFlowApp()
                 }
             }
         }
     }
+    when (playerSurface) {
+        DesktopPlayerSurface.Player -> FullPlayer(viewModel.playerState(), viewModel.playerQueue(), viewModel.controller(), emptyList(), { playerSurface = DesktopPlayerSurface.None }, { playerSurface = DesktopPlayerSurface.Lyrics }, { playerSurface = DesktopPlayerSurface.Queue })
+        DesktopPlayerSurface.Queue -> QueueDrawer(viewModel.playerQueue(), viewModel.playerState(), viewModel.controller()) { playerSurface = DesktopPlayerSurface.Player }
+        DesktopPlayerSurface.Lyrics -> SyncedLyrics(emptyList(), viewModel.playerState().positionMs) { playerSurface = DesktopPlayerSurface.Player }
+        DesktopPlayerSurface.None -> Unit
+    }
 }
+
+private enum class DesktopPlayerSurface { None, Player, Queue, Lyrics }
 
 @Composable
 private fun DesktopNavigationRail(selected: DesktopDestination, onSelect: (DesktopDestination) -> Unit) = NavigationRail {
@@ -315,9 +349,12 @@ private fun DesktopNavigationRail(selected: DesktopDestination, onSelect: (Deskt
     DesktopDestination.entries.forEach { destination ->
         val icon = when (destination) {
             DesktopDestination.Home -> Icons.Outlined.Home
+            DesktopDestination.Explore -> Icons.Outlined.Search
             DesktopDestination.Library -> Icons.Outlined.LibraryMusic
             DesktopDestination.Favourites -> Icons.Outlined.Favorite
             DesktopDestination.Queue -> Icons.Outlined.QueueMusic
+            DesktopDestination.Effects -> Icons.Outlined.Tune
+            DesktopDestination.Tags -> Icons.Outlined.Edit
             DesktopDestination.Settings -> Icons.Outlined.Settings
         }
         NavigationRailItem(selected == destination, { onSelect(destination) }, { Icon(icon, destination.label) }, label = { Text(destination.label) })

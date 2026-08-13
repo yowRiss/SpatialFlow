@@ -29,6 +29,8 @@ class VlcjPlaybackController : PlaybackController {
     private var fadingPlayer: MediaPlayer? = null
     private val playbackScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var crossfadeJob: Job? = null
+    private var sleepTimerJob: Job? = null
+    private var sleepMode = SleepTimerMode.OFF
     private var isCrossfading = false
     private var normalizationEnabled = false
     private var crossfadeDurationMs = 0L
@@ -54,7 +56,7 @@ class VlcjPlaybackController : PlaybackController {
             is PlayerCommand.ReorderQueue -> reorder(command.fromIndex, command.toIndex)
             is PlayerCommand.SetRepeatMode -> mutableState.value = mutableState.value.copy(repeatMode = command.mode)
             is PlayerCommand.SetShuffle -> mutableState.value = mutableState.value.copy(isShuffleEnabled = command.enabled)
-            is PlayerCommand.SetSleepTimer -> Unit // Shared timer schedules a stop command.
+            is PlayerCommand.SetSleepTimer -> setSleepTimer(command.mode, command.durationMinutes)
         }
         }
     }
@@ -136,6 +138,8 @@ class VlcjPlaybackController : PlaybackController {
 
     private fun onFinished() = synchronized(this) {
         if (isCrossfading) return
+        if (sleepMode == SleepTimerMode.END_OF_SONG) { sleepMode = SleepTimerMode.OFF; mutableState.value = mutableState.value.copy(isPlaying = false); return }
+        if (sleepMode == SleepTimerMode.END_OF_QUEUE && mutableState.value.currentSongIndex == queue.lastIndex) { sleepMode = SleepTimerMode.OFF; mutableState.value = mutableState.value.copy(isPlaying = false); return }
         val current = mutableState.value.currentSongIndex
         when (mutableState.value.repeatMode) {
             RepeatMode.ONE -> playAt(current)
@@ -215,6 +219,16 @@ class VlcjPlaybackController : PlaybackController {
         queue = queue.toMutableList().apply { add(to, removeAt(from)) }
     }
 
+    private fun setSleepTimer(mode: SleepTimerMode, minutes: Int?) {
+        sleepTimerJob?.cancel(); sleepTimerJob = null; sleepMode = mode
+        if (mode == SleepTimerMode.CUSTOM && (minutes ?: 0) > 0) {
+            sleepTimerJob = playbackScope.launch {
+                delay(minutes!! * 60_000L)
+                synchronized(this@VlcjPlaybackController) { player?.controls()?.setPause(true); sleepMode = SleepTimerMode.OFF }
+            }
+        }
+    }
+
     private fun applyNormalization() {
         val song = mutableState.value.currentSong ?: return
         val volume = normalizedVolume(song)
@@ -242,6 +256,7 @@ class VlcjPlaybackController : PlaybackController {
 
     override fun release() = synchronized(this) {
         crossfadeJob?.cancel(); crossfadeJob = null
+        sleepTimerJob?.cancel(); sleepTimerJob = null
         player?.release(); player = null
         fadingPlayer?.release(); fadingPlayer = null
         factory?.release(); factory = null
