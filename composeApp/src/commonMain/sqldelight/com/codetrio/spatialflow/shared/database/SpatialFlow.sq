@@ -1,0 +1,87 @@
+CREATE TABLE playlist (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
+CREATE TABLE playlist_song (
+    playlist_id INTEGER NOT NULL REFERENCES playlist(id) ON DELETE CASCADE,
+    position INTEGER NOT NULL,
+    song_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    artist TEXT NOT NULL,
+    album_id INTEGER NOT NULL,
+    path TEXT,
+    duration INTEGER NOT NULL,
+    date_added INTEGER NOT NULL,
+    data TEXT,
+    thumbnail_url TEXT,
+    video_id TEXT,
+    artist_id TEXT,
+    lufs REAL,
+    PRIMARY KEY (playlist_id, song_id)
+);
+
+CREATE TABLE play_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    song_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    artist TEXT NOT NULL,
+    album_id INTEGER NOT NULL,
+    path TEXT,
+    duration INTEGER NOT NULL,
+    date_added INTEGER NOT NULL,
+    data TEXT,
+    thumbnail_url TEXT,
+    video_id TEXT,
+    artist_id TEXT,
+    lufs REAL,
+    played_at INTEGER NOT NULL
+);
+
+selectAllPlaylists:
+SELECT * FROM playlist ORDER BY updated_at DESC;
+
+insertPlaylist:
+INSERT INTO playlist(name, created_at, updated_at) VALUES (?, ?, ?);
+
+lastPlaylistId:
+SELECT last_insert_rowid();
+
+renamePlaylist:
+UPDATE playlist SET name = ?, updated_at = ? WHERE id = ?;
+
+deletePlaylist:
+DELETE FROM playlist WHERE id = ?;
+
+selectPlaylistSongs:
+SELECT * FROM playlist_song WHERE playlist_id = ? ORDER BY position;
+
+upsertPlaylistSong:
+INSERT OR REPLACE INTO playlist_song VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+removePlaylistSong:
+DELETE FROM playlist_song WHERE playlist_id = ? AND song_id = ?;
+
+selectHistory:
+SELECT * FROM play_history ORDER BY played_at DESC LIMIT ?;
+
+insertHistory:
+INSERT INTO play_history(song_id, title, artist, album_id, path, duration, date_added, data, thumbnail_url, video_id, artist_id, lufs, played_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+clearHistory:
+DELETE FROM play_history;
+
+createFavourites:
+CREATE TABLE IF NOT EXISTS favourite_song (song_id INTEGER PRIMARY KEY);
+
+selectFavouriteSongIds:
+SELECT song_id FROM favourite_song;
+
+addFavourite:
+INSERT OR IGNORE INTO favourite_song VALUES (?);
+
+removeFavourite:
+DELETE FROM favourite_song WHERE song_id = ?;

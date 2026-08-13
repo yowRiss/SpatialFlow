@@ -66,11 +66,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.codetrio.spatialflow.shared.ui.SharedTheme
-import java.awt.Desktop
+import com.codetrio.spatialflow.shared.library.LibraryRepository
+import com.codetrio.spatialflow.shared.library.LocalMusicLibrary
+import com.codetrio.spatialflow.shared.model.SongItem
+import com.codetrio.spatialflow.shared.player.PlaybackController
+import com.codetrio.spatialflow.shared.player.PlayerCommand
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import org.koin.core.context.GlobalContext
 import java.io.File
 import java.util.prefs.Preferences
 import javax.sound.sampled.AudioSystem
-import javax.sound.sampled.Clip
 import javax.swing.JFileChooser
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
@@ -102,11 +110,14 @@ private data class DesktopUiState(
     val notice: String? = null,
 )
 
-/** Desktop-only app state and playback bridge. This deliberately keeps file-system and Java Sound APIs
- * out of commonMain, so Android can keep using its Media3 implementation during the migration. */
+/** Desktop-only app state and playback bridge. File-system and libVLC details
+ * remain outside commonMain, so Android can retain its Media3 implementation. */
 private class DesktopPlayerViewModel {
+    private val libraryRepository: LibraryRepository = GlobalContext.get().get()
+    private val localMusicLibrary: LocalMusicLibrary = GlobalContext.get().get()
+    private val persistenceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val preferences = Preferences.userRoot().node("com/codetrio/spatialflow")
-    private var clip: Clip? = null
+    private val playbackController: PlaybackController = GlobalContext.get().get()
     private var selectedIndex = -1
     var state by mutableStateOf(loadInitialState())
         private set
@@ -121,20 +132,20 @@ private class DesktopPlayerViewModel {
     }
 
     fun loadLibrary(root: File) {
-        val tracks = root.walkTopDown()
-            .onEnter { !it.isHidden }
-            .filter { it.isFile && it.extension.lowercase() in audioExtensions }
-            .map(::readDesktopTrack)
-            .sortedBy { it.title.lowercase() }
-            .toList()
         preferences.put("libraryRoot", root.absolutePath)
-        state = state.copy(
-            destination = DesktopDestination.Library,
-            libraryRoot = root,
-            library = tracks,
-            queue = if (state.queue.isEmpty()) tracks else state.queue,
-            notice = if (tracks.isEmpty()) "No supported audio files found in ${root.name}." else "Found ${tracks.size} tracks in ${root.name}.",
-        )
+        state = state.copy(destination = DesktopDestination.Library, libraryRoot = root, notice = "Scanning ${root.name}…")
+        persistenceScope.launch {
+            localMusicLibrary.scan(root.absolutePath).onSuccess { songs ->
+                val tracks = songs.mapNotNull { song -> song.path?.let(::File)?.takeIf(File::isFile)?.let { file ->
+                    DesktopTrack(file, song.title, song.artist, null, (song.duration / 1_000).toInt())
+                } }
+                state = state.copy(
+                    library = tracks,
+                    queue = if (state.queue.isEmpty()) tracks else state.queue,
+                    notice = if (tracks.isEmpty()) "No supported audio files found in ${root.name}." else "Found ${tracks.size} tracks in ${root.name}.",
+                )
+            }.onFailure { error -> state = state.copy(notice = "Could not scan ${root.name}: ${error.message}") }
+        }
     }
 
     fun selectDestination(destination: DesktopDestination) {
@@ -149,38 +160,20 @@ private class DesktopPlayerViewModel {
 
     fun togglePlayback() {
         val current = state.currentTrack ?: state.queue.firstOrNull() ?: state.library.firstOrNull() ?: return
-        val activeClip = clip
-        if (activeClip != null) {
-            if (activeClip.isRunning) {
-                activeClip.stop()
-                state = state.copy(isPlaying = false)
-            } else {
-                activeClip.start()
-                state = state.copy(isPlaying = true)
-            }
-        } else {
-            play(current)
-        }
+        if (playbackController.state.value.currentSong == null) play(current) else playbackController.dispatch(PlayerCommand.TogglePlayback)
+        syncPlaybackState(current)
     }
 
     fun next() = moveBy(1)
     fun previous() = moveBy(-1)
 
     fun seekTo(seconds: Float) {
-        clip?.let {
-            it.microsecondPosition = (seconds * 1_000_000).toLong().coerceAtMost(it.microsecondLength)
-            state = state.copy(positionSeconds = seconds)
-        }
+        playbackController.dispatch(PlayerCommand.SeekTo((seconds * 1_000L).toLong()))
+        state = state.copy(positionSeconds = seconds)
     }
 
     fun refreshPosition() {
-        val activeClip = clip ?: return
-        val position = activeClip.microsecondPosition / 1_000_000f
-        if (!activeClip.isRunning && state.isPlaying && activeClip.microsecondPosition >= activeClip.microsecondLength) {
-            next()
-        } else if (position != state.positionSeconds) {
-            state = state.copy(positionSeconds = position)
-        }
+        syncPlaybackState(state.currentTrack)
     }
 
     fun toggleFavourite(track: DesktopTrack) {
@@ -188,44 +181,61 @@ private class DesktopPlayerViewModel {
         if (!favourites.add(track.id)) favourites.remove(track.id)
         preferences.put("favourites", favourites.joinToString("\n"))
         state = state.copy(favourites = favourites)
+        persistenceScope.launch { libraryRepository.toggleFavourite(track.id.hashCode().toLong()) }
     }
 
     fun addToQueue(track: DesktopTrack) {
         if (state.queue.none { it.id == track.id }) state = state.copy(queue = state.queue + track, notice = "Added ${track.title} to the queue.")
     }
 
-    fun close() { clip?.close() }
+    fun close() { playbackController.release() }
 
     private fun moveBy(offset: Int) {
         val queue = state.queue.ifEmpty { state.library }
         if (queue.isEmpty()) return
         val currentIndex = queue.indexOfFirst { it.id == state.currentTrack?.id }.takeIf { it >= 0 } ?: selectedIndex.coerceAtLeast(0)
         selectedIndex = (currentIndex + offset).floorMod(queue.size)
-        playTrack(queue[selectedIndex], queue)
+        playbackController.dispatch(if (offset > 0) PlayerCommand.Next else PlayerCommand.Previous)
+        syncPlaybackState(queue[selectedIndex])
     }
 
     private fun playTrack(track: DesktopTrack, queue: List<DesktopTrack>) {
-        clip?.stop()
-        clip?.close()
-        clip = try {
-            AudioSystem.getAudioInputStream(track.file).use { stream ->
-                AudioSystem.getClip().also { newClip -> newClip.open(stream); newClip.start() }
-            }
-        } catch (_: Exception) {
-            // Java Sound's available codecs vary by operating system. Still let users open the item
-            // in their configured desktop audio player instead of making the library unusable.
-            runCatching { if (Desktop.isDesktopSupported()) Desktop.getDesktop().open(track.file) }
-            null
-        }
+        val songs = queue.map(::asSong)
+        val index = queue.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
+        playbackController.setQueue(songs, index)
+        playbackController.dispatch(PlayerCommand.PlayAt(index))
         state = state.copy(
             queue = queue,
             currentTrack = track,
-            isPlaying = clip?.isRunning ?: false,
+            isPlaying = true,
             positionSeconds = 0f,
             history = (listOf(track) + state.history.filterNot { it.id == track.id }).take(50),
-            notice = if (clip == null) "Opened in your system audio player; install Java Sound codecs for in-app controls." else null,
+            notice = null,
+        )
+        persistenceScope.launch {
+            libraryRepository.recordHistory(
+                SongItem.local(track.id.hashCode().toLong(), track.title, track.artist, -1, track.file.absolutePath, (track.durationSeconds ?: 0) * 1_000L, track.file.lastModified()),
+                System.currentTimeMillis(),
+            )
+        }
+    }
+
+    private fun syncPlaybackState(fallback: DesktopTrack?) {
+        val playback = playbackController.state.value
+        val matchingTrack = playback.currentSong?.path?.let { path -> state.queue.firstOrNull { it.file.absolutePath == path } } ?: fallback
+        state = state.copy(
+            currentTrack = matchingTrack,
+            isPlaying = playback.isPlaying,
+            positionSeconds = playback.currentSong?.let { playback.positionMs / 1_000f } ?: state.positionSeconds,
+            notice = if (playback.isProcessing && playback.currentSong != null) "Loading ${playback.currentSong.title}…" else state.notice,
         )
     }
+
+    private fun asSong(track: DesktopTrack) = SongItem.local(
+        id = track.id.hashCode().toLong(), rawTitle = track.title, rawArtist = track.artist,
+        albumId = -1, path = track.file.absolutePath, duration = (track.durationSeconds ?: 0) * 1_000L,
+        dateAdded = track.file.lastModified(),
+    )
 
     private fun loadInitialState(): DesktopUiState {
         val root = preferences.get("libraryRoot", null)?.let(::File)?.takeIf(File::isDirectory)
@@ -364,7 +374,7 @@ private fun DesktopSettingsScreen(state: DesktopUiState, viewModel: DesktopPlaye
         Text(state.libraryRoot?.absolutePath ?: "No folder selected", style = MaterialTheme.typography.bodyMedium)
         TextButton(viewModel::chooseLibrary) { Text("Change music folder") }
     } }
-    Text("Playback uses the desktop’s Java Sound codecs. WAV/AIFF work out of the box; unsupported formats open in the configured system player.", style = MaterialTheme.typography.bodyMedium)
+    Text("Playback uses libVLC for local and stream formats. Install or bundle libVLC for in-app playback controls.", style = MaterialTheme.typography.bodyMedium)
 }
 
 @Composable

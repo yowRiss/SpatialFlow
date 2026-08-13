@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.android.multiplatform.library)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.sqldelight)
 }
 
 kotlin {
@@ -31,12 +32,13 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
+            implementation(libs.koin.core)
+            implementation(libs.jetbrains.compose.runtime)
+            implementation(libs.jetbrains.compose.foundation)
+            implementation(libs.jetbrains.compose.material3)
+            implementation(libs.jetbrains.compose.material.icons.extended)
+            implementation(libs.jetbrains.compose.ui)
+            implementation(libs.jetbrains.compose.resources)
 
             // JetBrains' multiplatform Lifecycle and Navigation artifacts.
             implementation(libs.jetbrains.lifecycle.viewmodel)
@@ -58,7 +60,17 @@ kotlin {
                 implementation(libs.ktor.client.cio)
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.jaudiotagger)
+                implementation(libs.vlcj)
+                implementation(libs.sqldelight.sqlite.driver)
             }
+        }
+    }
+}
+
+sqldelight {
+    databases {
+        create("SpatialFlowDatabase") {
+            packageName.set("com.codetrio.spatialflow.shared.database")
         }
     }
 }
