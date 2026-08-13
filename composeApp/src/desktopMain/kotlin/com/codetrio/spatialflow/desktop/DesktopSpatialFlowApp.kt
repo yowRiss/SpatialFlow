@@ -65,6 +65,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.codetrio.spatialflow.shared.ui.SharedTheme
 import java.awt.Desktop
 import java.io.File
 import java.util.prefs.Preferences
