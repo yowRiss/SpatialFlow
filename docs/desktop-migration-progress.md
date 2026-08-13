@@ -252,7 +252,8 @@ Status: in progress.
   artwork-safe fallback surface.
 - [x] Queue: add the shared desktop queue drawer and play-at queue actions.
 - [x] Lyrics: add the shared karaoke line surface; provider fetching and current
-  track binding still need to be connected to populate it automatically.
+  track binding now fetches LRCLIB lyrics for the active player song, with timed
+  LRC/karaoke parsing and a plain-lyrics fallback.
 - [x] Effects: add desktop controls for the supported VLC effects contract.
 - [x] Settings: route the desktop navigation to the shared adaptive settings UI.
 - [x] Tag editor: add a desktop tag editor backed by jaudiotagger for local
@@ -261,6 +262,11 @@ Status: in progress.
   playlist insertion, plus custom/end-of-song/end-of-queue sleep behavior.
 - [x] Snackbar/global visual chrome: add the Compose Canvas animated mesh
   gradient replacement for Android's custom background view.
+- [x] Account: add a desktop account route exposing the PKCE system-browser
+  OAuth flow. Token exchange/account persistence remains a separate backend
+  integration because no desktop OAuth client ID is bundled in source.
+- [x] Playlist management: add the desktop playlist-management route for
+  persistent creation/deletion, alongside add-to-playlist from song actions.
 - [ ] Artwork loading, account screen, playlist-management screen, remaining
   lyrics providers, and desktop libVLC packaging remain in the active
   Phase 3/Phase 2 queue.

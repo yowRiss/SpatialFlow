@@ -29,11 +29,13 @@ import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.PlaylistPlay
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.QueueMusic
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.PlaylistPlay
 import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.SkipPrevious
 import androidx.compose.material3.Button
@@ -80,6 +82,9 @@ import com.codetrio.spatialflow.shared.ui.explore.ExploreScreen
 import com.codetrio.spatialflow.shared.ui.player.EffectsScreen
 import com.codetrio.spatialflow.shared.ui.SpatialFlowApp
 import com.codetrio.spatialflow.shared.ui.custom.AnimatedMeshGradient
+import com.codetrio.spatialflow.shared.ui.library.PlaylistScreen
+import com.codetrio.spatialflow.shared.ui.explore.AccountScreen
+import com.codetrio.spatialflow.shared.account.GoogleAuthClient
 import com.codetrio.spatialflow.shared.ui.player.FullPlayer
 import com.codetrio.spatialflow.shared.ui.player.MiniPlayer
 import com.codetrio.spatialflow.shared.ui.player.QueueDrawer
@@ -102,7 +107,7 @@ import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
 
 private enum class DesktopDestination(val label: String) {
-    Home("Home"), Explore("Explore"), Library("Library"), Favourites("Favourites"), Queue("Queue"), Effects("Effects"), Tags("Tags"), Settings("Settings")
+    Home("Home"), Explore("Explore"), Account("Account"), Library("Library"), Playlists("Playlists"), Favourites("Favourites"), Queue("Queue"), Effects("Effects"), Tags("Tags"), Settings("Settings")
 }
 
 private data class DesktopTrack(
@@ -138,6 +143,7 @@ private class DesktopPlayerViewModel {
     private val playbackController: PlaybackController = GlobalContext.get().get()
     private val musicCatalog: MusicCatalog = GlobalContext.get().get()
     private val lyricsCatalog: LyricsCatalog = GlobalContext.get().get()
+    private val authClient: GoogleAuthClient = GlobalContext.get().get()
     private var streamingQueue: List<SongItem> = emptyList()
     private var selectedIndex = -1
     var state by mutableStateOf(loadInitialState())
@@ -214,6 +220,7 @@ private class DesktopPlayerViewModel {
     fun playerQueue(): List<SongItem> = streamingQueue.ifEmpty { state.queue.map(::asSong) }
     fun controller(): PlaybackController = playbackController
     fun repository(): LibraryRepository = libraryRepository
+    fun auth(): GoogleAuthClient = authClient
     fun catalog(): MusicCatalog = musicCatalog
     fun playOnline(song: SongItem) {
         streamingQueue = listOf(song)
@@ -344,7 +351,9 @@ fun DesktopSpatialFlowApp() = SharedTheme {
                 when (state.destination) {
                     DesktopDestination.Home -> HomeScreen(state, viewModel)
                     DesktopDestination.Explore -> ExploreScreen(viewModel.catalog(), viewModel::playOnline)
+                    DesktopDestination.Account -> AccountScreen(viewModel.auth())
                     DesktopDestination.Library -> LibraryScreen(state, viewModel)
+                    DesktopDestination.Playlists -> PlaylistScreen(viewModel.repository())
                     DesktopDestination.Favourites -> FavouritesScreen(state, viewModel)
                     DesktopDestination.Queue -> QueueScreen(state, viewModel)
                     DesktopDestination.Effects -> EffectsScreen(viewModel.controller())
@@ -373,7 +382,9 @@ private fun DesktopNavigationRail(selected: DesktopDestination, onSelect: (Deskt
         val icon = when (destination) {
             DesktopDestination.Home -> Icons.Outlined.Home
             DesktopDestination.Explore -> Icons.Outlined.Search
+            DesktopDestination.Account -> Icons.Outlined.Person
             DesktopDestination.Library -> Icons.Outlined.LibraryMusic
+            DesktopDestination.Playlists -> Icons.Outlined.PlaylistPlay
             DesktopDestination.Favourites -> Icons.Outlined.Favorite
             DesktopDestination.Queue -> Icons.Outlined.QueueMusic
             DesktopDestination.Effects -> Icons.Outlined.Tune
