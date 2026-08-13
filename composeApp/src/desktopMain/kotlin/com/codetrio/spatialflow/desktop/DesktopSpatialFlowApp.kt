@@ -59,6 +59,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,10 +79,16 @@ import com.codetrio.spatialflow.shared.data.innertube.MusicCatalog
 import com.codetrio.spatialflow.shared.ui.explore.ExploreScreen
 import com.codetrio.spatialflow.shared.ui.player.EffectsScreen
 import com.codetrio.spatialflow.shared.ui.SpatialFlowApp
+import com.codetrio.spatialflow.shared.ui.custom.AnimatedMeshGradient
 import com.codetrio.spatialflow.shared.ui.player.FullPlayer
 import com.codetrio.spatialflow.shared.ui.player.MiniPlayer
 import com.codetrio.spatialflow.shared.ui.player.QueueDrawer
 import com.codetrio.spatialflow.shared.ui.player.SyncedLyrics
+import com.codetrio.spatialflow.shared.ui.player.SongActionsDialog
+import com.codetrio.spatialflow.shared.data.lyrics.LyricsCatalog
+import com.codetrio.spatialflow.shared.data.lyrics.LyricLine
+import com.codetrio.spatialflow.shared.data.lyrics.SharedLrcParser
+import com.codetrio.spatialflow.shared.data.lyrics.TrackMetadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -130,6 +137,7 @@ private class DesktopPlayerViewModel {
     private val preferences = Preferences.userRoot().node("com/codetrio/spatialflow")
     private val playbackController: PlaybackController = GlobalContext.get().get()
     private val musicCatalog: MusicCatalog = GlobalContext.get().get()
+    private val lyricsCatalog: LyricsCatalog = GlobalContext.get().get()
     private var streamingQueue: List<SongItem> = emptyList()
     private var selectedIndex = -1
     var state by mutableStateOf(loadInitialState())
@@ -205,11 +213,19 @@ private class DesktopPlayerViewModel {
     fun playerState(): PlayerUiState = playbackController.state.value
     fun playerQueue(): List<SongItem> = streamingQueue.ifEmpty { state.queue.map(::asSong) }
     fun controller(): PlaybackController = playbackController
+    fun repository(): LibraryRepository = libraryRepository
     fun catalog(): MusicCatalog = musicCatalog
     fun playOnline(song: SongItem) {
         streamingQueue = listOf(song)
         playbackController.setQueue(streamingQueue)
         playbackController.dispatch(PlayerCommand.PlayAt(0))
+    }
+    suspend fun lyricsForCurrentSong(): List<LyricLine> {
+        val song = playbackController.state.value.currentSong ?: return emptyList()
+        val metadata = TrackMetadata(song.title, song.artist, song.title, song.artist, durationMs = song.duration, filePath = song.path.orEmpty(), videoId = song.videoId)
+        return lyricsCatalog.fetch(metadata).getOrNull()?.let { result ->
+            SharedLrcParser.parse(result.syncedLyrics).ifEmpty { result.plainLyrics?.lines()?.filter(String::isNotBlank)?.mapIndexed { index, value -> LyricLine(index * 4_000L, value) }.orEmpty() }
+        }.orEmpty()
     }
 
     private fun moveBy(offset: Int) {
@@ -304,6 +320,9 @@ fun DesktopSpatialFlowApp() = SharedTheme {
     val viewModel = remember { DesktopPlayerViewModel() }
     val state = viewModel.state
     var playerSurface by remember { mutableStateOf(DesktopPlayerSurface.None) }
+    var lyricLines by remember { mutableStateOf<List<LyricLine>>(emptyList()) }
+    var showSongActions by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     DisposableEffect(Unit) { onDispose(viewModel::close) }
     LaunchedEffect(state.isPlaying) {
         while (state.isPlaying) {
@@ -312,13 +331,15 @@ fun DesktopSpatialFlowApp() = SharedTheme {
         }
     }
 
-    Row(Modifier.fillMaxSize()) {
-        DesktopNavigationRail(state.destination, viewModel::selectDestination)
-        Scaffold(
+    Box(Modifier.fillMaxSize()) {
+        AnimatedMeshGradient()
+        Row(Modifier.fillMaxSize()) {
+            DesktopNavigationRail(state.destination, viewModel::selectDestination)
+            Scaffold(
             modifier = Modifier.weight(1f),
             bottomBar = { MiniPlayer(viewModel.playerState(), viewModel.controller()) { playerSurface = DesktopPlayerSurface.Player } },
-        ) { padding ->
-            Column(Modifier.fillMaxSize().padding(padding)) {
+            ) { padding ->
+                Column(Modifier.fillMaxSize().padding(padding)) {
                 state.notice?.let { Notice(it) }
                 when (state.destination) {
                     DesktopDestination.Home -> HomeScreen(state, viewModel)
@@ -330,15 +351,17 @@ fun DesktopSpatialFlowApp() = SharedTheme {
                     DesktopDestination.Tags -> DesktopTagEditor(viewModel.playerState().currentSong) { message -> viewModel.selectDestination(DesktopDestination.Tags) }
                     DesktopDestination.Settings -> SpatialFlowApp()
                 }
+                }
             }
         }
     }
     when (playerSurface) {
-        DesktopPlayerSurface.Player -> FullPlayer(viewModel.playerState(), viewModel.playerQueue(), viewModel.controller(), emptyList(), { playerSurface = DesktopPlayerSurface.None }, { playerSurface = DesktopPlayerSurface.Lyrics }, { playerSurface = DesktopPlayerSurface.Queue })
+        DesktopPlayerSurface.Player -> FullPlayer(viewModel.playerState(), viewModel.playerQueue(), viewModel.controller(), lyricLines, { playerSurface = DesktopPlayerSurface.None }, { scope.launch { lyricLines = viewModel.lyricsForCurrentSong(); playerSurface = DesktopPlayerSurface.Lyrics } }, { playerSurface = DesktopPlayerSurface.Queue }, { showSongActions = true })
         DesktopPlayerSurface.Queue -> QueueDrawer(viewModel.playerQueue(), viewModel.playerState(), viewModel.controller()) { playerSurface = DesktopPlayerSurface.Player }
-        DesktopPlayerSurface.Lyrics -> SyncedLyrics(emptyList(), viewModel.playerState().positionMs) { playerSurface = DesktopPlayerSurface.Player }
+        DesktopPlayerSurface.Lyrics -> SyncedLyrics(lyricLines, viewModel.playerState().positionMs) { playerSurface = DesktopPlayerSurface.Player }
         DesktopPlayerSurface.None -> Unit
     }
+    viewModel.playerState().currentSong?.takeIf { showSongActions }?.let { song -> SongActionsDialog(song, viewModel.repository(), { viewModel.controller().dispatch(PlayerCommand.Next) }, { showSongActions = false }) }
 }
 
 private enum class DesktopPlayerSurface { None, Player, Queue, Lyrics }

@@ -257,9 +257,13 @@ Status: in progress.
 - [x] Settings: route the desktop navigation to the shared adaptive settings UI.
 - [x] Tag editor: add a desktop tag editor backed by jaudiotagger for local
   title, artist, and album metadata.
-- [ ] Song actions, animated mesh background, artwork loading, lyrics-fetch
-  binding, account screen, playlist management UI, and desktop libVLC packaging
-  remain in the active Phase 3/Phase 2 queue.
+- [x] Song actions / sleep timer: add play-next, favourite, playlist creation,
+  playlist insertion, plus custom/end-of-song/end-of-queue sleep behavior.
+- [x] Snackbar/global visual chrome: add the Compose Canvas animated mesh
+  gradient replacement for Android's custom background view.
+- [ ] Artwork loading, account screen, playlist-management screen, remaining
+  lyrics providers, and desktop libVLC packaging remain in the active
+  Phase 3/Phase 2 queue.
 
 ### Verification log
 

@@ -71,14 +71,14 @@ fun MiniPlayer(state: PlayerUiState, controller: PlaybackController, onExpand: (
 }
 
 @Composable
-fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: PlaybackController, lyrics: List<LyricLine>, onDismiss: () -> Unit, onLyrics: () -> Unit, onQueue: () -> Unit) {
+fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: PlaybackController, lyrics: List<LyricLine>, onDismiss: () -> Unit, onLyrics: () -> Unit, onQueue: () -> Unit, onActions: () -> Unit) {
     val song = state.currentSong ?: return
     val duration = state.duration.coerceAtLeast(song.duration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()).coerceAtLeast(1)
     Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surface))).padding(24.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onDismiss) { Icon(Icons.Default.KeyboardArrowDown, "Close player") }
             Text("NOW PLAYING", Modifier.fillMaxWidth(), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
-            IconButton({}) { Icon(Icons.Default.MoreVert, "More") }
+            IconButton(onActions) { Icon(Icons.Default.MoreVert, "More") }
         }
         Spacer(Modifier.height(28.dp)); Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Artwork(song, 300.dp) }
         Spacer(Modifier.height(28.dp)); Row(verticalAlignment = Alignment.CenterVertically) { SongText(song, Modifier.fillMaxWidth()); IconButton({}) { Icon(Icons.Default.FavoriteBorder, "Favourite") } }

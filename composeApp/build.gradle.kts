@@ -86,7 +86,9 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Rpm, TargetFormat.Msi)
             packageName = "spatialflow"
-            packageVersion = "1.8.0"
+            // CI builds must sort above an already-installed RPM. Local builds
+            // retain the base version while GitHub Actions uses its run number.
+            packageVersion = "1.8.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}"
             description = "SpatialFlow music player"
             vendor = "SpatialFlow"
             linux {

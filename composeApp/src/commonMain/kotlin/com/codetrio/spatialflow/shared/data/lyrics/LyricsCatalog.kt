@@ -24,3 +24,11 @@ class NetworkLyricsCatalog(
             ?: error("No lyrics found for ${track.cleanedArtist} — ${track.cleanedTitle}")
     }
 }
+
+/** Reliable no-configuration lyrics catalog for desktop startup. Additional
+ * providers can be layered on top when their endpoint configuration exists. */
+class LrcLibLyricsCatalog(private val client: LrcLibClient) : LyricsCatalog {
+    private val scorer = LyricsConfidenceScorer()
+    override suspend fun fetch(track: TrackMetadata): Result<LyricsResult> =
+        client.getLyrics(track).map { result -> result.toLyricsResult().apply { confidence = scorer.score(this, track) } }
+}
