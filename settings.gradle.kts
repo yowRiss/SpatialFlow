@@ -8,13 +8,13 @@ pluginManagement {
             }
         }
         mavenCentral()
-        mavenLocal()
         gradlePluginPortal()
-        maven { url 'https://jitpack.io' }  // (Optional here but safe)
+        maven("https://jitpack.io")
     }
 }
+
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
 dependencyResolutionManagement {
@@ -22,11 +22,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }  // Required for GitHub libs
-        maven { url "https://repo1.maven.org/maven2/" } // Backup repo
-        maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
+        maven("https://jitpack.io")
     }
 }
 
 rootProject.name = "SpatialFlow"
-include ':app'
+include(":app") // Existing Android application; kept during the incremental migration.
+include(":composeApp")

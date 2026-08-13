@@ -1,0 +1,18 @@
+app-id: com.codetrio.SpatialFlow
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+command: spatialflow
+finish-args:
+  - --share=network
+  - --socket=pulseaudio
+  - --filesystem=xdg-music:ro
+modules:
+  # CI should replace this module with the output of createDistributable.
+  - name: spatialflow
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 spatialflow /app/bin/spatialflow
+    sources:
+      - type: file
+        path: spatialflow

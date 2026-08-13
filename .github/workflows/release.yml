@@ -1,9 +1,13 @@
-name: Android Release
+name: SpatialFlow Release
 
 on:
   push:
     tags:
       - 'v*'
+
+# Needed by softprops/action-gh-release to create or update the tag's release.
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -38,20 +42,35 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Release APK
-        run: ./gradlew assembleRelease
-
-      - name: Generate checksum
+      - name: Install RPM packaging tools
         run: |
-          cd app/build/outputs/apk/release
-          sha256sum app-release.apk > checksum.txt
+          sudo apt-get update
+          sudo apt-get install -y rpm fakeroot
+
+      - name: Build Android APK and Fedora RPM
+        run: ./gradlew :app:assembleRelease :composeApp:packageRpm
+
+      - name: Collect release assets and generate checksums
+        run: |
+          mkdir -p release-assets
+          cp app/build/outputs/apk/release/app-release.apk release-assets/SpatialFlow-android.apk
+          rpm_file="$(find composeApp/build/compose/binaries -type f -name '*.rpm' -print -quit)"
+          test -n "$rpm_file"
+          cp "$rpm_file" release-assets/SpatialFlow-fedora.rpm
+          sha256sum release-assets/* > release-assets/SHA256SUMS.txt
+
+      - name: Preserve release assets from this build
+        uses: actions/upload-artifact@v5
+        with:
+          name: SpatialFlow-${{ github.ref_name }}
+          path: release-assets/*
+          if-no-files-found: error
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            app/build/outputs/apk/release/app-release.apk
-            app/build/outputs/apk/release/checksum.txt
+            release-assets/*
           body: |
             # SpatialFlow 1.8
             
