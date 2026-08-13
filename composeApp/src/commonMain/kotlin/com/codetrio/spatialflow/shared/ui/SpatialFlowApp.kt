@@ -45,9 +45,8 @@ import com.codetrio.spatialflow.shared.viewmodel.SettingsViewModel
 private val CompactWidth = 600.dp
 
 @Composable
-fun SpatialFlowApp() = SharedTheme {
-    // Replace this with your DI-provided shared ViewModel as the migration grows.
-    val viewModel = remember { SettingsViewModel() }
+fun SpatialFlowApp(providedViewModel: SettingsViewModel? = null) = SharedTheme {
+    val viewModel = providedViewModel ?: remember { SettingsViewModel() }
     val state by viewModel.uiState.collectAsState()
 
     BoxWithConstraints(Modifier.fillMaxSize()) {

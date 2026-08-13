@@ -257,7 +257,9 @@ Status: in progress.
   candidates for the active player song, with confidence scoring, timed
   LRC/karaoke parsing, and a plain-lyrics fallback.
 - [x] Effects: add desktop controls for the supported VLC effects contract.
-- [x] Settings: route the desktop navigation to the shared adaptive settings UI.
+- [x] Settings: route the desktop navigation to the shared adaptive settings UI
+  using the desktop Koin `SettingsViewModel`, so appearance, playback, and
+  scan preferences persist across launches.
 - [x] Tag editor: add a desktop tag editor backed by jaudiotagger for local
   title, artist, and album metadata.
 - [x] Song actions / sleep timer: add play-next, favourite, playlist creation,
@@ -297,3 +299,4 @@ Status: in progress.
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Shared player/queue/lyrics shells, Explore stream hand-off, Effects, Settings route, and desktop tag editor compile successfully. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | InnerTube player URL resolution, Coil 3 artwork, and Explore album/artist/playlist detail browsing compile successfully. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop DI now binds the shared SyncLRC/LRCLIB/Paxsenix lyrics decision catalog. |
+| 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop settings route now uses the persistent Koin-backed shared ViewModel. |

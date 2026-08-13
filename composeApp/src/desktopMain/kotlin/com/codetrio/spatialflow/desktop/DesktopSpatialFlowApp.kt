@@ -85,6 +85,7 @@ import com.codetrio.spatialflow.shared.ui.custom.AnimatedMeshGradient
 import com.codetrio.spatialflow.shared.ui.library.PlaylistScreen
 import com.codetrio.spatialflow.shared.ui.explore.AccountScreen
 import com.codetrio.spatialflow.shared.account.GoogleAuthClient
+import com.codetrio.spatialflow.shared.viewmodel.SettingsViewModel
 import com.codetrio.spatialflow.shared.ui.player.FullPlayer
 import com.codetrio.spatialflow.shared.ui.player.MiniPlayer
 import com.codetrio.spatialflow.shared.ui.player.QueueDrawer
@@ -144,6 +145,7 @@ private class DesktopPlayerViewModel {
     private val musicCatalog: MusicCatalog = GlobalContext.get().get()
     private val lyricsCatalog: LyricsCatalog = GlobalContext.get().get()
     private val authClient: GoogleAuthClient = GlobalContext.get().get()
+    private val settingsViewModel: SettingsViewModel = GlobalContext.get().get()
     private var streamingQueue: List<SongItem> = emptyList()
     private var selectedIndex = -1
     var state by mutableStateOf(loadInitialState())
@@ -221,6 +223,7 @@ private class DesktopPlayerViewModel {
     fun controller(): PlaybackController = playbackController
     fun repository(): LibraryRepository = libraryRepository
     fun auth(): GoogleAuthClient = authClient
+    fun settings(): SettingsViewModel = settingsViewModel
     fun catalog(): MusicCatalog = musicCatalog
     fun playOnline(song: SongItem) {
         val videoId = song.videoId ?: run {
@@ -382,7 +385,7 @@ fun DesktopSpatialFlowApp() = SharedTheme {
                     DesktopDestination.Queue -> QueueScreen(state, viewModel)
                     DesktopDestination.Effects -> EffectsScreen(viewModel.controller())
                     DesktopDestination.Tags -> DesktopTagEditor(viewModel.playerState().currentSong) { message -> viewModel.selectDestination(DesktopDestination.Tags) }
-                    DesktopDestination.Settings -> SpatialFlowApp()
+                    DesktopDestination.Settings -> SpatialFlowApp(viewModel.settings())
                 }
                 }
             }
