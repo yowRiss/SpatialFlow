@@ -4,14 +4,19 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.multiplatform.library)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.compose.multiplatform)
 }
 
 kotlin {
-    androidTarget {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    androidLibrary {
+        namespace = "com.codetrio.spatialflow.kmp"
+        compileSdk = 37
+        minSdk = 25
+        androidResources {
+            enable = true
+        }
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
@@ -57,24 +62,6 @@ kotlin {
 
 compose.resources {
     packageOfResClass = "com.codetrio.spatialflow.shared.resources"
-}
-
-android {
-    namespace = "com.codetrio.spatialflow.kmp"
-    compileSdk = 37
-
-    defaultConfig {
-        applicationId = "com.codetrio.spatialflow.kmp"
-        minSdk = 25
-        targetSdk = 37
-        versionCode = 1
-        versionName = "1.8.0"
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
 }
 
 compose.desktop {
