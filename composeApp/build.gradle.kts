@@ -10,7 +10,7 @@ plugins {
 }
 
 kotlin {
-    androidLibrary {
+    android {
         namespace = "com.codetrio.spatialflow.kmp"
         compileSdk = 37
         minSdk = 25
@@ -52,10 +52,12 @@ kotlin {
             implementation(libs.activity.compose)
             implementation(libs.ktor.client.okhttp)
         }
-        desktopMain.dependencies {
+        val desktopMain by getting {
+            dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.ktor.client.cio)
             implementation(libs.kotlinx.coroutines.swing)
+            }
         }
     }
 }
