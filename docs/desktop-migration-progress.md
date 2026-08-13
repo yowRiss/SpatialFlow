@@ -263,7 +263,8 @@ Status: in progress.
 - [x] Tag editor: add a desktop tag editor backed by jaudiotagger for local
   title, artist, and album metadata.
 - [x] Song actions / sleep timer: add play-next, favourite, playlist creation,
-  playlist insertion, plus custom/end-of-song/end-of-queue sleep behavior.
+  playlist insertion, desktop direct-stream downloading to `~/Music/SpatialFlow`,
+  plus custom/end-of-song/end-of-queue sleep behavior.
 - [x] Snackbar/global visual chrome: add the Compose Canvas animated mesh
   gradient replacement for Android's custom background view.
 - [x] Account: add a desktop account route exposing the PKCE system-browser
@@ -300,3 +301,4 @@ Status: in progress.
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | InnerTube player URL resolution, Coil 3 artwork, and Explore album/artist/playlist detail browsing compile successfully. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop DI now binds the shared SyncLRC/LRCLIB/Paxsenix lyrics decision catalog. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop settings route now uses the persistent Koin-backed shared ViewModel. |
+| 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop direct-stream downloader and player-action integration compile successfully. |

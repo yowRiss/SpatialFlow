@@ -146,6 +146,7 @@ private class DesktopPlayerViewModel {
     private val lyricsCatalog: LyricsCatalog = GlobalContext.get().get()
     private val authClient: GoogleAuthClient = GlobalContext.get().get()
     private val settingsViewModel: SettingsViewModel = GlobalContext.get().get()
+    private val songDownloader = DesktopSongDownloader()
     private var streamingQueue: List<SongItem> = emptyList()
     private var selectedIndex = -1
     var state by mutableStateOf(loadInitialState())
@@ -252,6 +253,16 @@ private class DesktopPlayerViewModel {
             playbackController.setQueue(streamingQueue)
             playbackController.dispatch(PlayerCommand.PlayAt(0))
             state = state.copy(notice = null)
+        }
+    }
+    fun download(song: SongItem) {
+        state = state.copy(notice = "Downloading ${song.title}…")
+        persistenceScope.launch {
+            songDownloader.download(song).onSuccess { file ->
+                state = state.copy(notice = "Downloaded ${song.title} to ${file.absolutePath}")
+            }.onFailure { error ->
+                state = state.copy(notice = "Could not download ${song.title}: ${error.message ?: "network error"}")
+            }
         }
     }
     suspend fun lyricsForCurrentSong(): List<LyricLine> {
@@ -397,7 +408,7 @@ fun DesktopSpatialFlowApp() = SharedTheme {
         DesktopPlayerSurface.Lyrics -> SyncedLyrics(lyricLines, viewModel.playerState().positionMs) { playerSurface = DesktopPlayerSurface.Player }
         DesktopPlayerSurface.None -> Unit
     }
-    viewModel.playerState().currentSong?.takeIf { showSongActions }?.let { song -> SongActionsDialog(song, viewModel.repository(), { viewModel.controller().dispatch(PlayerCommand.Next) }, { showSongActions = false }) }
+    viewModel.playerState().currentSong?.takeIf { showSongActions }?.let { song -> SongActionsDialog(song, viewModel.repository(), { viewModel.controller().dispatch(PlayerCommand.Next) }, { showSongActions = false }, onDownload = if (song.path?.startsWith("http") == true) ({ viewModel.download(song) }) else null) }
 }
 
 private enum class DesktopPlayerSurface { None, Player, Queue, Lyrics }
