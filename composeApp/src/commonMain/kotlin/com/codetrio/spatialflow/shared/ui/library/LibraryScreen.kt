@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -39,7 +38,7 @@ fun LibraryScreen(songs: List<SongItem>, repository: LibraryRepository, onPlay: 
     Column(Modifier.fillMaxSize().padding(24.dp)) {
         Text("Library", style = MaterialTheme.typography.headlineMedium)
         Text("${songs.size} songs", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxSize()) {
             items(songs, key = { it.id }) { song -> SongRow(song, song.id in favourites, onPlay) { scope.launch { repository.toggleFavourite(song.id) } } }
         }
     }
@@ -51,7 +50,7 @@ fun HistoryScreen(repository: LibraryRepository, onPlay: (SongItem) -> Unit) {
     val scope = rememberCoroutineScope()
     Column(Modifier.fillMaxSize().padding(24.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text("History", style = MaterialTheme.typography.headlineMedium); Spacer(Modifier.weight(1f))
+            Text("History", style = MaterialTheme.typography.headlineMedium); Spacer(Modifier.padding(12.dp))
             Text("Clear", modifier = Modifier.clickable { scope.launch { repository.clearHistory() } }, color = MaterialTheme.colorScheme.primary)
         }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) { items(history, key = { it.playedAt }) { SongRow(it.song, false, onPlay, null) } }
@@ -60,7 +59,7 @@ fun HistoryScreen(repository: LibraryRepository, onPlay: (SongItem) -> Unit) {
 
 @Composable private fun SongRow(song: SongItem, favourite: Boolean, onPlay: (SongItem) -> Unit, onFavourite: (() -> Unit)?) = Card(Modifier.fillMaxWidth().clickable { onPlay(song) }) {
     Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) { Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis); Text(song.artist, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        Column(Modifier.fillMaxWidth()) { Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis); Text(song.artist, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         onFavourite?.let { IconButton(it) { Icon(if (favourite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, "Favourite") } }
     }
 }
