@@ -10,15 +10,18 @@ interface LyricsCatalog {
 class NetworkLyricsCatalog(
     http: HttpClient,
     syncLrcBaseUrl: String,
+    paxsenixBaseUrl: String,
     private val scorer: LyricsConfidenceScorer = LyricsConfidenceScorer(),
 ) : LyricsCatalog {
     private val lrcLib = LrcLibClient(http)
     private val syncLrc = SyncLrcClient(http, syncLrcBaseUrl)
+    private val paxsenix = PaxsenixLyricsProvider(PaxsenixClient(http, paxsenixBaseUrl))
 
     override suspend fun fetch(track: TrackMetadata): Result<LyricsResult> = runCatching {
         val candidates = listOfNotNull(
             syncLrc.getLyrics(track).getOrNull()?.toLyricsResult(),
             lrcLib.getLyrics(track).getOrNull()?.toLyricsResult(),
+            paxsenix.fetch(track).getOrNull(),
         ).map { candidate -> candidate.apply { confidence = scorer.score(this, track) } }
         candidates.maxWithOrNull(compareBy<LyricsResult> { it.isWordByWord }.thenBy { it.confidence })
             ?: error("No lyrics found for ${track.cleanedArtist} — ${track.cleanedTitle}")

@@ -253,8 +253,9 @@ Status: in progress.
   artwork-safe fallback surface.
 - [x] Queue: add the shared desktop queue drawer and play-at queue actions.
 - [x] Lyrics: add the shared karaoke line surface; provider fetching and current
-  track binding now fetches LRCLIB lyrics for the active player song, with timed
-  LRC/karaoke parsing and a plain-lyrics fallback.
+  track binding now evaluates SyncLRC, LRCLIB, and Paxsenix Spotify/YouTube
+  candidates for the active player song, with confidence scoring, timed
+  LRC/karaoke parsing, and a plain-lyrics fallback.
 - [x] Effects: add desktop controls for the supported VLC effects contract.
 - [x] Settings: route the desktop navigation to the shared adaptive settings UI.
 - [x] Tag editor: add a desktop tag editor backed by jaudiotagger for local
@@ -271,8 +272,8 @@ Status: in progress.
 - [x] Artwork loading: use Coil 3 Compose Multiplatform with the existing Ktor
   engines for remote YouTube artwork and local file artwork, retaining the
   initials artwork fallback while an image is unavailable.
-- [ ] Remaining lyrics-provider parity and desktop libVLC packaging remain in
-  the active Phase 3/Phase 2 queue.
+- [ ] Desktop libVLC packaging and provider-specific Apple Music/Musixmatch
+  parser parity remain in the active Phase 2/Phase 3 queue.
 
 ### Verification log
 
@@ -295,3 +296,4 @@ Status: in progress.
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Shared nine-step onboarding and desktop first-run route compile successfully. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Shared player/queue/lyrics shells, Explore stream hand-off, Effects, Settings route, and desktop tag editor compile successfully. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | InnerTube player URL resolution, Coil 3 artwork, and Explore album/artist/playlist detail browsing compile successfully. |
+| 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop DI now binds the shared SyncLRC/LRCLIB/Paxsenix lyrics decision catalog. |
