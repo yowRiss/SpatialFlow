@@ -223,9 +223,33 @@ private class DesktopPlayerViewModel {
     fun auth(): GoogleAuthClient = authClient
     fun catalog(): MusicCatalog = musicCatalog
     fun playOnline(song: SongItem) {
-        streamingQueue = listOf(song)
-        playbackController.setQueue(streamingQueue)
-        playbackController.dispatch(PlayerCommand.PlayAt(0))
+        val videoId = song.videoId ?: run {
+            state = state.copy(notice = "This stream is missing its YouTube Music video id.")
+            return
+        }
+        state = state.copy(notice = "Resolving ${song.title}…")
+        persistenceScope.launch {
+            val player = musicCatalog.player(videoId).getOrElse { error ->
+                state = state.copy(notice = "Could not resolve ${song.title}: ${error.message ?: "network error"}")
+                return@launch
+            }
+            val streamUrl = player.playbackUrl
+                ?: player.streams.maxByOrNull { it.bitrate }?.url
+                ?: run {
+                    state = state.copy(notice = "No playable audio stream was returned for ${song.title}.")
+                    return@launch
+                }
+            val playable = song.copy(
+                path = streamUrl,
+                data = streamUrl,
+                duration = player.durationMs.takeIf { it > 0 } ?: song.duration,
+                thumbnailUrl = player.thumbnailUrl ?: song.thumbnailUrl,
+            )
+            streamingQueue = listOf(playable)
+            playbackController.setQueue(streamingQueue)
+            playbackController.dispatch(PlayerCommand.PlayAt(0))
+            state = state.copy(notice = null)
+        }
     }
     suspend fun lyricsForCurrentSong(): List<LyricLine> {
         val song = playbackController.state.value.currentSong ?: return emptyList()

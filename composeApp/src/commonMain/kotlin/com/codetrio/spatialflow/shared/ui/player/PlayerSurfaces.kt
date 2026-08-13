@@ -38,7 +38,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +50,7 @@ import com.codetrio.spatialflow.shared.player.PlaybackController
 import com.codetrio.spatialflow.shared.player.PlayerCommand
 import com.codetrio.spatialflow.shared.player.PlayerUiState
 import com.codetrio.spatialflow.shared.player.RepeatMode
+import com.codetrio.spatialflow.shared.ui.components.ArtworkImage
 
 @Composable
 fun MiniPlayer(state: PlayerUiState, controller: PlaybackController, onExpand: () -> Unit) {
@@ -110,7 +110,7 @@ fun SyncedLyrics(lines: List<LyricLine>, positionMs: Long, onDismiss: () -> Unit
     } }
 }
 
-@Composable private fun Artwork(song: SongItem, size: androidx.compose.ui.unit.Dp) = Surface(Modifier.size(size).clip(RoundedCornerShape(size / 10)), color = MaterialTheme.colorScheme.secondaryContainer) { Box(contentAlignment = Alignment.Center) { Text(song.title.take(1).uppercase(), style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onSecondaryContainer) } }
+@Composable private fun Artwork(song: SongItem, size: androidx.compose.ui.unit.Dp) = ArtworkImage(song.artworkLocation, song.title, Modifier.size(size))
 @Composable private fun SongText(song: SongItem, modifier: Modifier = Modifier) = Column(modifier) { Text(song.title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.SemiBold); Text(song.artist, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall) }
 private fun time(ms: Long): String = "%d:%02d".format(ms / 60_000, (ms / 1_000) % 60)
 private fun nextRepeat(mode: RepeatMode) = when (mode) { RepeatMode.OFF -> RepeatMode.ALL; RepeatMode.ALL -> RepeatMode.ONE; RepeatMode.ONE -> RepeatMode.OFF }

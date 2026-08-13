@@ -245,8 +245,9 @@ Status: in progress.
 - [x] Library + history: add shared list/history screens wired to the SQLDelight
   `LibraryRepository`, with shared favourite toggle and clear-history actions.
 - [x] Explore / streaming: add desktop Explore route backed by the shared Ktor
-  InnerTube search catalog; selecting an online song creates a desktop VLC
-  playback queue.
+  InnerTube search catalog; selecting an online song resolves its player
+  manifest to the highest-bitrate direct audio URL before VLC queues it. Album,
+  artist, and playlist search results now open browse-detail track lists.
 - [x] Mini player + full player: add shared player surfaces and wire them to the
   desktop playback controller, including seeking, repeat, transport, and an
   artwork-safe fallback surface.
@@ -267,9 +268,11 @@ Status: in progress.
   integration because no desktop OAuth client ID is bundled in source.
 - [x] Playlist management: add the desktop playlist-management route for
   persistent creation/deletion, alongside add-to-playlist from song actions.
-- [ ] Artwork loading, account screen, playlist-management screen, remaining
-  lyrics providers, and desktop libVLC packaging remain in the active
-  Phase 3/Phase 2 queue.
+- [x] Artwork loading: use Coil 3 Compose Multiplatform with the existing Ktor
+  engines for remote YouTube artwork and local file artwork, retaining the
+  initials artwork fallback while an image is unavailable.
+- [ ] Remaining lyrics-provider parity and desktop libVLC packaging remain in
+  the active Phase 3/Phase 2 queue.
 
 ### Verification log
 
@@ -291,3 +294,4 @@ Status: in progress.
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | VLCJ playback controller, dual-player crossfade, and the supported desktop DSP controls compile successfully. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Shared nine-step onboarding and desktop first-run route compile successfully. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Shared player/queue/lyrics shells, Explore stream hand-off, Effects, Settings route, and desktop tag editor compile successfully. |
+| 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | InnerTube player URL resolution, Coil 3 artwork, and Explore album/artist/playlist detail browsing compile successfully. |
