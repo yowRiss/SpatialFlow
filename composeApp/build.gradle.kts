@@ -54,9 +54,10 @@ kotlin {
         }
         val desktopMain by getting {
             dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.ktor.client.cio)
-            implementation(libs.kotlinx.coroutines.swing)
+                implementation(compose.desktop.currentOs)
+                implementation(libs.ktor.client.cio)
+                implementation(libs.kotlinx.coroutines.swing)
+                implementation(libs.jaudiotagger)
             }
         }
     }

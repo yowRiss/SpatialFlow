@@ -71,6 +71,8 @@ import java.util.prefs.Preferences
 import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.Clip
 import javax.swing.JFileChooser
+import org.jaudiotagger.audio.AudioFileIO
+import org.jaudiotagger.tag.FieldKey
 
 private enum class DesktopDestination(val label: String) {
     Home("Home"), Library("Library"), Favourites("Favourites"), Queue("Queue"), Settings("Settings")
@@ -78,9 +80,10 @@ private enum class DesktopDestination(val label: String) {
 
 private data class DesktopTrack(
     val file: File,
-    val title: String = file.nameWithoutExtension,
-    val artist: String = "Local file",
-    val durationSeconds: Int? = audioDurationSeconds(file),
+    val title: String,
+    val artist: String,
+    val album: String?,
+    val durationSeconds: Int?,
 ) {
     val id: String get() = file.absolutePath
 }
@@ -120,7 +123,7 @@ private class DesktopPlayerViewModel {
         val tracks = root.walkTopDown()
             .onEnter { !it.isHidden }
             .filter { it.isFile && it.extension.lowercase() in audioExtensions }
-            .map(::DesktopTrack)
+            .map(::readDesktopTrack)
             .sortedBy { it.title.lowercase() }
             .toList()
         preferences.put("libraryRoot", root.absolutePath)
@@ -229,7 +232,7 @@ private class DesktopPlayerViewModel {
         val tracks = root?.walkTopDown()
             ?.onEnter { !it.isHidden }
             ?.filter { it.isFile && it.extension.lowercase() in audioExtensions }
-            ?.map(::DesktopTrack)
+            ?.map(::readDesktopTrack)
             ?.sortedBy { it.title.lowercase() }
             ?.toList()
             .orEmpty()
@@ -238,6 +241,24 @@ private class DesktopPlayerViewModel {
 }
 
 private val audioExtensions = setOf("mp3", "flac", "m4a", "aac", "ogg", "opus", "wav", "aiff", "aif")
+
+private fun readDesktopTrack(file: File): DesktopTrack {
+    val fallback = file.nameWithoutExtension
+    val fields = runCatching {
+        AudioFileIO.read(file).tag?.let { tag ->
+            Triple(tag.getFirst(FieldKey.TITLE), tag.getFirst(FieldKey.ARTIST), tag.getFirst(FieldKey.ALBUM))
+        }
+    }.getOrNull()
+    val (title, artist, album) = fields ?: Triple("", "", "")
+    val splitName = fallback.split(" - ", limit = 2)
+    return DesktopTrack(
+        file = file,
+        title = title.takeUnless(String::isBlank) ?: splitName.last(),
+        artist = artist.takeUnless(String::isBlank) ?: splitName.getOrNull(0)?.takeIf { splitName.size > 1 } ?: "Unknown artist",
+        album = album.takeUnless(String::isBlank),
+        durationSeconds = audioDurationSeconds(file),
+    )
+}
 
 private fun audioDurationSeconds(file: File): Int? = runCatching {
     AudioSystem.getAudioFileFormat(file).properties()["duration"]?.let { (it as Long / 1_000_000L).toInt() }
@@ -375,7 +396,7 @@ private fun TrackRow(track: DesktopTrack, state: DesktopUiState, viewModel: Desk
     Spacer(Modifier.width(12.dp))
     Column(Modifier.weight(1f)) {
         Text(track.title, maxLines = 1, overflow = TextOverflow.Ellipsis, color = if (state.currentTrack?.id == track.id) MaterialTheme.colorScheme.primary else Color.Unspecified)
-        Text("${track.file.parentFile.name} · ${track.durationSeconds?.let(::formatTime) ?: "Unknown duration"}", style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text("${track.artist} · ${track.album ?: track.file.parentFile.name} · ${track.durationSeconds?.let(::formatTime) ?: "Unknown duration"}", style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
     IconButton({ viewModel.addToQueue(track) }) { Icon(Icons.Outlined.QueueMusic, "Add to queue") }
     IconToggleButton(track.id in state.favourites, { viewModel.toggleFavourite(track) }) { Icon(if (track.id in state.favourites) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder, "Favourite") }
