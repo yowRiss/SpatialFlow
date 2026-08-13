@@ -3,6 +3,8 @@ name: SpatialFlow Release
 on:
   workflow_dispatch:
   push:
+    branches:
+      - master
     tags:
       - 'v*'
 
@@ -78,9 +80,12 @@ jobs:
           if-no-files-found: error
 
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('build-{0}', github.sha) }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('Automated build {0}', github.sha) }}
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
           files: |
             release-assets/*
           body: |
