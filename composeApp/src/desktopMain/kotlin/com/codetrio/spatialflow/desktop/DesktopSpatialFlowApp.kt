@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Pause
 import androidx.compose.material.icons.outlined.PlayArrow
@@ -83,6 +84,7 @@ import com.codetrio.spatialflow.shared.ui.player.EffectsScreen
 import com.codetrio.spatialflow.shared.ui.SpatialFlowApp
 import com.codetrio.spatialflow.shared.ui.custom.AnimatedMeshGradient
 import com.codetrio.spatialflow.shared.ui.library.PlaylistScreen
+import com.codetrio.spatialflow.shared.ui.library.HistoryScreen
 import com.codetrio.spatialflow.shared.ui.explore.AccountScreen
 import com.codetrio.spatialflow.shared.account.GoogleAuthClient
 import com.codetrio.spatialflow.shared.viewmodel.SettingsViewModel
@@ -108,7 +110,7 @@ import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
 
 private enum class DesktopDestination(val label: String) {
-    Home("Home"), Explore("Explore"), Account("Account"), Library("Library"), Playlists("Playlists"), Favourites("Favourites"), Queue("Queue"), Effects("Effects"), Tags("Tags"), Settings("Settings")
+    Home("Home"), Explore("Explore"), Account("Account"), Library("Library"), History("History"), Playlists("Playlists"), Favourites("Favourites"), Queue("Queue"), Effects("Effects"), Tags("Tags"), Settings("Settings")
 }
 
 private data class DesktopTrack(
@@ -255,6 +257,17 @@ private class DesktopPlayerViewModel {
             state = state.copy(notice = null)
         }
     }
+    fun playShared(song: SongItem) {
+        if (song.path?.startsWith("http") == true) {
+            playOnline(song)
+            return
+        }
+        val file = song.path?.let(::File)?.takeIf(File::isFile) ?: run {
+            state = state.copy(notice = "The saved audio file for ${song.title} is no longer available.")
+            return
+        }
+        playTrack(DesktopTrack(file, song.title, song.artist, null, (song.duration / 1_000).toInt()), state.queue.ifEmpty { state.library })
+    }
     fun download(song: SongItem) {
         state = state.copy(notice = "Downloading ${song.title}…")
         persistenceScope.launch {
@@ -391,6 +404,7 @@ fun DesktopSpatialFlowApp() = SharedTheme {
                     DesktopDestination.Explore -> ExploreScreen(viewModel.catalog(), viewModel::playOnline)
                     DesktopDestination.Account -> AccountScreen(viewModel.auth())
                     DesktopDestination.Library -> LibraryScreen(state, viewModel)
+                    DesktopDestination.History -> HistoryScreen(viewModel.repository(), viewModel::playShared)
                     DesktopDestination.Playlists -> PlaylistScreen(viewModel.repository())
                     DesktopDestination.Favourites -> FavouritesScreen(state, viewModel)
                     DesktopDestination.Queue -> QueueScreen(state, viewModel)
@@ -422,6 +436,7 @@ private fun DesktopNavigationRail(selected: DesktopDestination, onSelect: (Deskt
             DesktopDestination.Explore -> Icons.Outlined.Search
             DesktopDestination.Account -> Icons.Outlined.Person
             DesktopDestination.Library -> Icons.Outlined.LibraryMusic
+            DesktopDestination.History -> Icons.Outlined.History
             DesktopDestination.Playlists -> Icons.Outlined.PlaylistPlay
             DesktopDestination.Favourites -> Icons.Outlined.Favorite
             DesktopDestination.Queue -> Icons.Outlined.QueueMusic

@@ -243,7 +243,8 @@ Status: in progress.
   first-run route. It persists completion and the Android-equivalent setup
   preferences through `DesktopOnboardingPlatform`.
 - [x] Library + history: add shared list/history screens wired to the SQLDelight
-  `LibraryRepository`, with shared favourite toggle and clear-history actions.
+  `LibraryRepository`, with shared favourite toggle, clear-history actions, and
+  a desktop navigation route that replays persisted local history entries.
 - [x] Explore / streaming: add desktop Explore route backed by the shared Ktor
   InnerTube search catalog; selecting an online song resolves its player
   manifest to the highest-bitrate direct audio URL before VLC queues it. Album,
@@ -302,3 +303,4 @@ Status: in progress.
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop DI now binds the shared SyncLRC/LRCLIB/Paxsenix lyrics decision catalog. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop settings route now uses the persistent Koin-backed shared ViewModel. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop direct-stream downloader and player-action integration compile successfully. |
+| 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop persistent History destination and replay hand-off compile successfully. |
