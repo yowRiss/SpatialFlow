@@ -221,7 +221,8 @@ Status: in progress.
   `VlcjPlaybackController` actual. It maps play/pause/seek/queue/repeat state,
   duration/time callbacks, LUFS gain (-14 LUFS target), and libVLC's ten-band
   equalizer into shared state. The desktop shell now uses this controller rather
-  than Java Sound.
+  than Java Sound. Desktop playback now measures local/direct-stream tracks via
+  FFmpeg's EBU R128 filter in the background and applies the result when ready.
 - [x] Crossfade execution: implement a dual-libVLC-player overlap in
   `VlcjPlaybackController`. It begins the next eligible queue item during the
   configured end window, ramps outgoing/incoming volumes over 24 steps, then
@@ -330,3 +331,5 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Embedded local artwork extraction/cache and playback metadata propagation compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Active local/remote artwork colour sampling and shared dynamic-theme wiring compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Scrollable ten-band desktop equalizer UI compiles successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Background FFmpeg EBU R128 loudness measurement and VLC normalization hand-off compile successfully. |
+| 2026-08-14 | `ffmpeg … -filter:a ebur128 …` | pass | Local FFmpeg emits an integrated loudness line (`I: -21.1 LUFS`) matching the desktop analyzer parser. |

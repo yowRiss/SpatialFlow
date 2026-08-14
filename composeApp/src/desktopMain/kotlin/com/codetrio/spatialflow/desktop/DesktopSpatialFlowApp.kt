@@ -81,6 +81,8 @@ import com.codetrio.spatialflow.shared.player.PlaybackController
 import com.codetrio.spatialflow.shared.player.PlayerCommand
 import com.codetrio.spatialflow.shared.player.PlayerUiState
 import com.codetrio.spatialflow.shared.platform.MediaControls
+import com.codetrio.spatialflow.shared.media.DesktopLoudnessAnalyzer
+import com.codetrio.spatialflow.shared.media.FfmpegRunner
 import com.codetrio.spatialflow.shared.data.innertube.MusicCatalog
 import com.codetrio.spatialflow.shared.ui.explore.ExploreScreen
 import com.codetrio.spatialflow.shared.ui.player.EffectsScreen
@@ -161,6 +163,7 @@ private class DesktopPlayerViewModel {
     private val updateInstaller: UpdateInstaller = GlobalContext.get().get()
     private val httpClient: HttpClient = GlobalContext.get().get()
     private val mediaControls: MediaControls = GlobalContext.get().get()
+    private val loudnessAnalyzer = DesktopLoudnessAnalyzer(GlobalContext.get().get<FfmpegRunner>())
     private var streamingQueue: List<SongItem> = emptyList()
     private var selectedIndex = -1
     private var seededArtworkLocation: String? = null
@@ -170,6 +173,11 @@ private class DesktopPlayerViewModel {
         private set
 
     init {
+        persistenceScope.launch {
+            settingsViewModel.uiState.collect { settings ->
+                playbackController.setVolumeNormalization(settings.normalizeVolume)
+            }
+        }
         persistenceScope.launch {
             val legacyFavourites = preferences.get("favourites", "")
                 .lineSequence().filter(String::isNotBlank).map { it.hashCode().toLong() }.toSet()
@@ -293,6 +301,7 @@ private class DesktopPlayerViewModel {
             playbackController.setQueue(streamingQueue, targetIndex)
             playbackController.dispatch(PlayerCommand.PlayAt(targetIndex))
             updateArtworkSeed(playable)
+            analyzeLoudness(playable)
             state = state.copy(notice = null)
         }
     }
@@ -366,6 +375,7 @@ private class DesktopPlayerViewModel {
         )
         mediaControls.publishNowPlaying(asSong(track), true)
         updateArtworkSeed(asSong(track))
+        analyzeLoudness(streamingQueue.getOrNull(index))
         persistenceScope.launch {
             libraryRepository.recordHistory(asSong(track), System.currentTimeMillis())
         }
@@ -395,6 +405,16 @@ private class DesktopPlayerViewModel {
         persistenceScope.launch {
             val extracted = DesktopArtworkSeedExtractor.extract(location)
             if (location == seededArtworkLocation) artworkSeed = extracted
+        }
+    }
+
+    private fun analyzeLoudness(song: SongItem?) {
+        val target = song?.takeIf { it.lufs == null && !it.path.isNullOrBlank() } ?: return
+        persistenceScope.launch {
+            loudnessAnalyzer.analyze(target.path!!)?.let { measured ->
+                target.lufs = measured
+                playbackController.setVolumeNormalization(settingsViewModel.uiState.value.normalizeVolume)
+            }
         }
     }
 
