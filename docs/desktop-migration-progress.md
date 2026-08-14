@@ -275,6 +275,8 @@ Status: in progress.
   using the desktop Koin `SettingsViewModel`, so appearance, playback, and
   scan preferences persist across launches. The desktop root also applies the
   persisted AMOLED and dynamic-theme values to its active `SpatialFlowTheme`.
+  `Scan on launch` now controls selected-library startup scanning while managed
+  offline downloads remain available.
 - [x] Tag editor: add a desktop tag editor backed by jaudiotagger for local
   title, artist, and album metadata.
 - [x] Song actions / sleep timer: add play-next, favourite, playlist creation,
@@ -352,3 +354,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Finished stream-download registration in the live desktop library compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Startup merging of managed offline downloads into the library compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Generated package-version propagation into desktop update checks compiles successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persisted selected-library scan-on-launch behavior compiles successfully. |

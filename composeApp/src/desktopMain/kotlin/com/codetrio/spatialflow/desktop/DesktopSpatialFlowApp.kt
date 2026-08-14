@@ -462,7 +462,8 @@ private class DesktopPlayerViewModel {
         val downloads = File(System.getProperty("user.home"), "Music/SpatialFlow").takeIf(File::isDirectory)
         val favourites = preferences.get("favourites", "").lineSequence()
             .filter(String::isNotBlank).map { it.hashCode().toLong() }.toSet()
-        val tracks = listOfNotNull(root, downloads).distinctBy(File::getAbsolutePath)
+        val selectedRoots = if (settingsStore.settings.value.scanOnLaunch) listOfNotNull(root) else emptyList()
+        val tracks = (selectedRoots + listOfNotNull(downloads)).distinctBy(File::getAbsolutePath)
             .flatMap { directory -> directory.walkTopDown().onEnter { !it.isHidden }
                 .filter { it.isFile && it.extension.lowercase() in audioExtensions }.map(::readDesktopTrack).toList() }
             .distinctBy { it.file.absolutePath }.sortedBy { it.title.lowercase() }
