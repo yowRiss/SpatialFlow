@@ -34,13 +34,13 @@ import com.codetrio.spatialflow.shared.model.SongItem
 import kotlinx.coroutines.launch
 
 @Composable
-fun PlaylistScreen(repository: LibraryRepository, onPlay: (SongItem) -> Unit) {
+fun PlaylistScreen(repository: LibraryRepository, onPlayQueue: (List<SongItem>, Int) -> Unit) {
     val playlists by repository.playlists.collectAsState()
     val scope = rememberCoroutineScope()
     var name by remember { mutableStateOf("") }
     var selected by remember { mutableStateOf<Playlist?>(null) }
     selected?.let { playlist ->
-        PlaylistDetailScreen(playlist, repository, onBack = { selected = null }, onPlay = onPlay)
+        PlaylistDetailScreen(playlist, repository, onBack = { selected = null }, onPlayQueue = onPlayQueue)
         return
     }
     Column(Modifier.fillMaxSize().padding(24.dp)) {
@@ -61,7 +61,7 @@ fun PlaylistScreen(repository: LibraryRepository, onPlay: (SongItem) -> Unit) {
 }
 
 @Composable
-private fun PlaylistDetailScreen(playlist: Playlist, repository: LibraryRepository, onBack: () -> Unit, onPlay: (SongItem) -> Unit) {
+private fun PlaylistDetailScreen(playlist: Playlist, repository: LibraryRepository, onBack: () -> Unit, onPlayQueue: (List<SongItem>, Int) -> Unit) {
     val scope = rememberCoroutineScope()
     var songs by remember(playlist.id) { mutableStateOf<List<SongItem>>(emptyList()) }
     LaunchedEffect(playlist.id) { songs = repository.songs(playlist.id) }
@@ -71,8 +71,8 @@ private fun PlaylistDetailScreen(playlist: Playlist, repository: LibraryReposito
             Text(playlist.name, Modifier.padding(start = 16.dp).fillMaxWidth(), style = MaterialTheme.typography.headlineMedium)
         }
         if (songs.isEmpty()) Text("No songs yet. Add one from the player actions menu.", Modifier.padding(top = 24.dp))
-        songs.forEach { song ->
-            Card(Modifier.fillMaxWidth().padding(top = 8.dp).clickable { onPlay(song) }) {
+        songs.forEachIndexed { index, song ->
+            Card(Modifier.fillMaxWidth().padding(top = 8.dp).clickable { onPlayQueue(songs, index) }) {
                 Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.fillMaxWidth()) { Text(song.title); Text(song.artist, style = MaterialTheme.typography.bodySmall) }
                     IconButton({ scope.launch { repository.removeSong(playlist.id, song.id); songs = songs.filterNot { it.id == song.id } } }) { Icon(Icons.Default.Delete, "Remove from playlist") }

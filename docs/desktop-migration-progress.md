@@ -286,7 +286,9 @@ Status: in progress.
 - [x] Playlist management: add the desktop playlist-management route for
   persistent creation/deletion, alongside add-to-playlist from song actions.
   Playlists now open a detail list where their saved local or streamed songs
-  can be played or removed.
+  can be played or removed. Selecting a playlist entry resolves every streamed
+  item into a fresh URL and starts a single mixed local/streaming queue at that
+  entry.
 - [x] Artwork loading: use Coil 3 Compose Multiplatform with the existing Ktor
   engines for remote YouTube artwork and local file artwork, retaining the
   initials artwork fallback while an image is unavailable. Desktop scanning now
@@ -340,3 +342,4 @@ Status: in progress.
 | 2026-08-14 | `ffmpeg … -c:a aac -metadata … track.m4a` + `ffprobe` | pass | Produced an M4A container with the expected title and artist metadata, matching the desktop offline-download command. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Explore-detail persistent playlist import compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Online-play history persistence compiles successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persistent mixed playlist queue resolution compiles successfully. |

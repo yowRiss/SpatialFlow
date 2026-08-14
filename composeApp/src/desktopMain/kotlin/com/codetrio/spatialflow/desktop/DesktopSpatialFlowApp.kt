@@ -273,28 +273,12 @@ private class DesktopPlayerViewModel {
     fun settings(): SettingsViewModel = settingsViewModel
     fun catalog(): MusicCatalog = musicCatalog
     fun playOnline(song: SongItem) {
-        val videoId = song.videoId ?: run {
-            state = state.copy(notice = "This stream is missing its YouTube Music video id.")
-            return
-        }
         state = state.copy(notice = "Resolving ${song.title}…")
         persistenceScope.launch {
-            val player = musicCatalog.player(videoId).getOrElse { error ->
-                state = state.copy(notice = "Could not resolve ${song.title}: ${error.message ?: "network error"}")
+            val playable = resolvePlayable(song) ?: run {
+                state = state.copy(notice = "Could not resolve ${song.title} for playback.")
                 return@launch
             }
-            val streamUrl = player.playbackUrl
-                ?: player.streams.maxByOrNull { it.bitrate }?.url
-                ?: run {
-                    state = state.copy(notice = "No playable audio stream was returned for ${song.title}.")
-                    return@launch
-                }
-            val playable = song.copy(
-                path = streamUrl,
-                data = streamUrl,
-                duration = player.durationMs.takeIf { it > 0 } ?: song.duration,
-                thumbnailUrl = player.thumbnailUrl ?: song.thumbnailUrl,
-            )
             val existingQueue = streamingQueue.ifEmpty { state.queue.map(::asSong) }
             streamingQueue = existingQueue.filterNot { it.videoId == playable.videoId } + playable
             val targetIndex = streamingQueue.lastIndex
@@ -304,6 +288,29 @@ private class DesktopPlayerViewModel {
             analyzeLoudness(playable)
             state = state.copy(notice = null)
             libraryRepository.recordHistory(playable, System.currentTimeMillis())
+        }
+    }
+    fun playPlaylist(songs: List<SongItem>, startIndex: Int) {
+        if (songs.isEmpty()) return
+        state = state.copy(notice = "Resolving playlist…")
+        persistenceScope.launch {
+            val requested = songs.getOrNull(startIndex) ?: return@launch
+            val resolved = buildList {
+                songs.forEach { song -> resolvePlayable(song)?.let(::add) }
+            }
+            val targetIndex = resolved.indexOfFirst { it.id == requested.id || (it.videoId != null && it.videoId == requested.videoId) }
+            if (resolved.isEmpty() || targetIndex < 0) {
+                state = state.copy(notice = "No playable songs were resolved from this playlist.")
+                return@launch
+            }
+            streamingQueue = resolved
+            playbackController.setQueue(resolved, targetIndex)
+            playbackController.dispatch(PlayerCommand.PlayAt(targetIndex))
+            val current = resolved[targetIndex]
+            updateArtworkSeed(current)
+            analyzeLoudness(current)
+            libraryRepository.recordHistory(current, System.currentTimeMillis())
+            state = state.copy(notice = null)
         }
     }
     fun playShared(song: SongItem) {
@@ -419,6 +426,19 @@ private class DesktopPlayerViewModel {
         }
     }
 
+    private suspend fun resolvePlayable(song: SongItem): SongItem? {
+        if (song.path?.startsWith("http") == true || song.path?.let(::File)?.isFile == true) return song
+        val videoId = song.videoId ?: return null
+        val player = musicCatalog.player(videoId).getOrNull() ?: return null
+        val streamUrl = player.playbackUrl ?: player.streams.maxByOrNull { it.bitrate }?.url ?: return null
+        return song.copy(
+            path = streamUrl,
+            data = streamUrl,
+            duration = player.durationMs.takeIf { it > 0 } ?: song.duration,
+            thumbnailUrl = player.thumbnailUrl ?: song.thumbnailUrl,
+        )
+    }
+
     private fun asSong(track: DesktopTrack) = SongItem.local(
         id = track.id.hashCode().toLong(), rawTitle = track.title, rawArtist = track.artist,
         albumId = -1, path = track.file.absolutePath, duration = (track.durationSeconds ?: 0) * 1_000L,
@@ -502,7 +522,7 @@ fun DesktopSpatialFlowApp() {
                     DesktopDestination.Account -> AccountScreen(viewModel.auth())
                     DesktopDestination.Library -> LibraryScreen(state, viewModel)
                     DesktopDestination.History -> HistoryScreen(viewModel.repository(), viewModel::playShared)
-                    DesktopDestination.Playlists -> PlaylistScreen(viewModel.repository(), viewModel::playShared)
+                    DesktopDestination.Playlists -> PlaylistScreen(viewModel.repository(), viewModel::playPlaylist)
                     DesktopDestination.Favourites -> FavouritesScreen(state, viewModel)
                     DesktopDestination.Queue -> QueueScreen(state, viewModel)
                     DesktopDestination.Effects -> EffectsScreen(viewModel.controller())
