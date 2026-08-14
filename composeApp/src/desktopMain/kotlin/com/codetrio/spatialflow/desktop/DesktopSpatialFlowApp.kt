@@ -561,7 +561,7 @@ fun DesktopSpatialFlowApp() {
     when (playerSurface) {
         DesktopPlayerSurface.Player -> FullPlayer(viewModel.playerState(), viewModel.playerQueue(), viewModel.controller(), lyricLines, viewModel.playerState().currentSong?.id in state.favourites, { viewModel.playerState().currentSong?.let(viewModel::toggleFavourite) }, { playerSurface = DesktopPlayerSurface.None }, { scope.launch { lyricLines = viewModel.lyricsForCurrentSong(); playerSurface = DesktopPlayerSurface.Lyrics } }, { playerSurface = DesktopPlayerSurface.Queue }, { showSongActions = true }, { showSleepTimer = true })
         DesktopPlayerSurface.Queue -> QueueDrawer(viewModel.playerQueue(), viewModel.playerState(), viewModel.controller(), viewModel::reorderPlayerQueue) { playerSurface = DesktopPlayerSurface.Player }
-        DesktopPlayerSurface.Lyrics -> SyncedLyrics(lyricLines, viewModel.playerState().positionMs) { playerSurface = DesktopPlayerSurface.Player }
+        DesktopPlayerSurface.Lyrics -> SyncedLyrics(lyricLines, viewModel.playerState().positionMs, { position -> viewModel.controller().dispatch(PlayerCommand.SeekTo(position)) }) { playerSurface = DesktopPlayerSurface.Player }
         DesktopPlayerSurface.None -> Unit
     }
     viewModel.playerState().currentSong?.takeIf { showSongActions }?.let { song -> SongActionsDialog(song, viewModel.repository(), { viewModel.controller().dispatch(PlayerCommand.Next) }, { showSongActions = false }, onDownload = if (song.path?.startsWith("http") == true) ({ viewModel.download(song) }) else null) }

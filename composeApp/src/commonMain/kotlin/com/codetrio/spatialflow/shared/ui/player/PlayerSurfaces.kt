@@ -182,7 +182,7 @@ fun QueueDrawer(queue: List<SongItem>, state: PlayerUiState, controller: Playbac
 }
 
 @Composable
-fun SyncedLyrics(lines: List<LyricLine>, positionMs: Long, onDismiss: () -> Unit) {
+fun SyncedLyrics(lines: List<LyricLine>, positionMs: Long, onSeekTo: (Long) -> Unit, onDismiss: () -> Unit) {
     val listState = rememberLazyListState()
     val activeIndex = lines.indexOfLast { it.startTimeMs <= positionMs }.coerceAtLeast(0)
     LaunchedEffect(activeIndex, lines.size) {
@@ -192,7 +192,7 @@ fun SyncedLyrics(lines: List<LyricLine>, positionMs: Long, onDismiss: () -> Unit
         Row(Modifier.fillMaxWidth()) { IconButton(onDismiss) { Icon(Icons.Default.ArrowBack, "Back") }; Text("Lyrics", style = MaterialTheme.typography.headlineMedium) }
         LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(18.dp)) { itemsIndexed(lines) { index, line ->
         val active = line.startTimeMs <= positionMs && (lines.getOrNull(index + 1)?.startTimeMs ?: Long.MAX_VALUE) > positionMs
-        KaraokeLine(line, positionMs, active)
+        Box(Modifier.fillMaxWidth().clickable { onSeekTo(line.startTimeMs) }) { KaraokeLine(line, positionMs, active) }
         } }
     }
 }
