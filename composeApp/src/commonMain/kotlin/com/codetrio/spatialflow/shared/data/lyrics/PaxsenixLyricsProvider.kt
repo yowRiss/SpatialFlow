@@ -9,12 +9,26 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-/** Shared Paxsenix result parser and Spotify/YouTube fallback provider. */
+/** Shared Paxsenix parser with word-timed Musixmatch, Spotify, and YouTube
+ * fallbacks. Apple Music requires a renewable developer token and remains a
+ * configured integration rather than embedding an expiring credential. */
 class PaxsenixLyricsProvider(private val client: PaxsenixClient) {
     suspend fun fetch(track: TrackMetadata): Result<LyricsResult> = runCatching {
-        fetchSpotify(track).getOrNull()
+        fetchMusixmatch(track).getOrNull()
+            ?: fetchSpotify(track).getOrNull()
             ?: fetchYouTube(track).getOrNull()
             ?: error("Paxsenix returned no lyrics for ${track.cleanedArtist} — ${track.cleanedTitle}")
+    }
+
+    private suspend fun fetchMusixmatch(track: TrackMetadata): Result<LyricsResult?> = runCatching {
+        val query = "${track.cleanedTitle} ${track.cleanedArtist}"
+        val duration = track.durationMs.takeIf { it > 0 }?.div(1_000)?.toString()
+        val wordTimed = client.musixmatchLyrics(query, track.cleanedTitle, track.cleanedArtist, duration, type = "word")
+            .getOrNull()?.let(::decodeLyrics)
+        val lyrics = wordTimed ?: client.musixmatchLyrics(query, track.cleanedTitle, track.cleanedArtist, duration, type = "default")
+            .getOrNull()?.let(::decodeLyrics)
+            ?: return@runCatching null
+        lyrics.toResult("Musixmatch", track.cleanedTitle, track.cleanedArtist)
     }
 
     private suspend fun fetchSpotify(track: TrackMetadata): Result<LyricsResult?> = runCatching {

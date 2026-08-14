@@ -257,7 +257,7 @@ Status: in progress.
   artwork-safe fallback surface.
 - [x] Queue: add the shared desktop queue drawer and play-at queue actions.
 - [x] Lyrics: add the shared karaoke line surface; provider fetching and current
-  track binding now evaluates SyncLRC, LRCLIB, and Paxsenix Spotify/YouTube
+  track binding now evaluates SyncLRC, LRCLIB, and Paxsenix Musixmatch/Spotify/YouTube
   candidates for the active player song, with confidence scoring, timed
   LRC/karaoke parsing, and a plain-lyrics fallback. Desktop local tracks first
   read embedded lyrics via jaudiotagger.
@@ -283,8 +283,10 @@ Status: in progress.
 - [x] Artwork loading: use Coil 3 Compose Multiplatform with the existing Ktor
   engines for remote YouTube artwork and local file artwork, retaining the
   initials artwork fallback while an image is unavailable.
-- [ ] Desktop libVLC packaging and provider-specific Apple Music/Musixmatch
-  parser parity remain in the active Phase 2/Phase 3 queue.
+- [ ] Desktop libVLC packaging and provider-specific Apple Music parser parity
+  remain in the active Phase 2/Phase 3 queue. Apple Music requires a renewable
+  developer token and is intentionally not implemented with Android's embedded
+  expiring token.
 
 ### Verification log
 
@@ -317,3 +319,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop Home update-check interaction and browser installer hand-off compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Playlist detail, replay, and remove-song actions compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Unified local/streaming queue management compiles successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Shared Paxsenix Musixmatch fallback compiles successfully. |
