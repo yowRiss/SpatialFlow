@@ -248,7 +248,8 @@ Status: in progress.
   `LibraryRepository`, with shared favourite toggle, clear-history actions, and
   a desktop navigation route that replays persisted local history entries.
   Desktop Library/Favourites now observe the same repository-backed favourite
-  IDs as song actions, including a one-time Preferences migration.
+  IDs as song actions, including a one-time Preferences migration. Resolved
+  streaming plays now write through the same history repository as local plays.
 - [x] Explore / streaming: add desktop Explore route backed by the shared Ktor
   InnerTube search catalog; selecting an online song resolves its player
   manifest to the highest-bitrate direct audio URL before VLC queues it. Album,
@@ -338,3 +339,4 @@ Status: in progress.
 | 2026-08-14 | `ffmpeg … -filter:a ebur128 …` | pass | Local FFmpeg emits an integrated loudness line (`I: -21.1 LUFS`) matching the desktop analyzer parser. |
 | 2026-08-14 | `ffmpeg … -c:a aac -metadata … track.m4a` + `ffprobe` | pass | Produced an M4A container with the expected title and artist metadata, matching the desktop offline-download command. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Explore-detail persistent playlist import compiles successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Online-play history persistence compiles successfully. |

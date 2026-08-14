@@ -303,6 +303,7 @@ private class DesktopPlayerViewModel {
             updateArtworkSeed(playable)
             analyzeLoudness(playable)
             state = state.copy(notice = null)
+            libraryRepository.recordHistory(playable, System.currentTimeMillis())
         }
     }
     fun playShared(song: SongItem) {
