@@ -57,6 +57,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -71,7 +72,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.codetrio.spatialflow.shared.ui.SharedTheme
+import com.codetrio.spatialflow.shared.ui.SpatialFlowTheme
 import com.codetrio.spatialflow.shared.library.LibraryRepository
 import com.codetrio.spatialflow.shared.library.LocalMusicLibrary
 import com.codetrio.spatialflow.shared.model.SongItem
@@ -375,8 +376,13 @@ private fun audioDurationSeconds(file: File): Int? = runCatching {
 private fun Int.floorMod(modulus: Int) = ((this % modulus) + modulus) % modulus
 
 @Composable
-fun DesktopSpatialFlowApp() = SharedTheme {
+fun DesktopSpatialFlowApp() {
     val viewModel = remember { DesktopPlayerViewModel() }
+    val settings by viewModel.settings().uiState.collectAsState()
+    SpatialFlowTheme(
+        amoledBlack = settings.amoledBlack,
+        usePlatformDynamicColor = settings.dynamicAlbumTheme,
+    ) {
     val state = viewModel.state
     var playerSurface by remember { mutableStateOf(DesktopPlayerSurface.None) }
     var lyricLines by remember { mutableStateOf<List<LyricLine>>(emptyList()) }
@@ -424,6 +430,7 @@ fun DesktopSpatialFlowApp() = SharedTheme {
         DesktopPlayerSurface.None -> Unit
     }
     viewModel.playerState().currentSong?.takeIf { showSongActions }?.let { song -> SongActionsDialog(song, viewModel.repository(), { viewModel.controller().dispatch(PlayerCommand.Next) }, { showSongActions = false }, onDownload = if (song.path?.startsWith("http") == true) ({ viewModel.download(song) }) else null) }
+    }
 }
 
 private enum class DesktopPlayerSurface { None, Player, Queue, Lyrics }

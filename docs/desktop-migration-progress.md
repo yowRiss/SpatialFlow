@@ -261,7 +261,8 @@ Status: in progress.
 - [x] Effects: add desktop controls for the supported VLC effects contract.
 - [x] Settings: route the desktop navigation to the shared adaptive settings UI
   using the desktop Koin `SettingsViewModel`, so appearance, playback, and
-  scan preferences persist across launches.
+  scan preferences persist across launches. The desktop root also applies the
+  persisted AMOLED and dynamic-theme values to its active `SpatialFlowTheme`.
 - [x] Tag editor: add a desktop tag editor backed by jaudiotagger for local
   title, artist, and album metadata.
 - [x] Song actions / sleep timer: add play-next, favourite, playlist creation,
@@ -306,3 +307,4 @@ Status: in progress.
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop direct-stream downloader and player-action integration compile successfully. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop persistent History destination and replay hand-off compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop embedded-lyrics lookup and its provider fallback hand-off compile successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop root theme now observes the persistent shared settings state. |
