@@ -584,13 +584,21 @@ private fun DesktopNavigationRail(selected: DesktopDestination, onSelect: (Deskt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeScreen(state: DesktopUiState, viewModel: DesktopPlayerViewModel) = Column(Modifier.fillMaxSize().padding(32.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    val history by viewModel.repository().history.collectAsState()
     Text("Good listening", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
     Text(if (state.library.isEmpty()) "Choose a folder to build your local library." else "${state.library.size} tracks ready in ${state.libraryRoot?.name}.", style = MaterialTheme.typography.bodyLarge)
     Button(onClick = viewModel::chooseLibrary) { Icon(Icons.Outlined.FolderOpen, null); Spacer(Modifier.width(8.dp)); Text("Choose music folder") }
     TextButton(onClick = viewModel::checkForUpdates) { Text("Check for updates") }
-    if (state.history.isNotEmpty()) {
+    if (history.isNotEmpty()) {
         Text("Recently played", style = MaterialTheme.typography.titleLarge)
-        TrackList(state.history.take(8), state, viewModel)
+        history.take(8).forEach { entry ->
+            Card(Modifier.fillMaxWidth().clickable { viewModel.playShared(entry.song) }) {
+                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) { Text(entry.song.title); Text(entry.song.artist, style = MaterialTheme.typography.bodySmall) }
+                    IconButton({ viewModel.toggleFavourite(entry.song) }) { Icon(if (entry.song.id in state.favourites) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder, "Favourite") }
+                }
+            }
+        }
     }
 }
 
