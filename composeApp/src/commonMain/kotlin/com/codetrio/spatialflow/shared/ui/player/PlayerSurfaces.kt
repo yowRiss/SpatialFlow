@@ -19,6 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -152,9 +154,14 @@ fun SleepTimerDialog(controller: PlaybackController, onDismiss: () -> Unit) {
 }
 
 @Composable
-fun QueueDrawer(queue: List<SongItem>, state: PlayerUiState, controller: PlaybackController, onDismiss: () -> Unit) = Column(Modifier.fillMaxSize().padding(24.dp)) {
+fun QueueDrawer(queue: List<SongItem>, state: PlayerUiState, controller: PlaybackController, onReorder: (Int, Int) -> Unit, onDismiss: () -> Unit) = Column(Modifier.fillMaxSize().padding(24.dp)) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { IconButton(onDismiss) { Icon(Icons.Default.ArrowBack, "Back") }; Text("Queue", style = MaterialTheme.typography.headlineMedium) }
-    LazyColumn { itemsIndexed(queue) { index, song -> Row(Modifier.fillMaxWidth().clickable { controller.dispatch(PlayerCommand.PlayAt(index)) }.padding(vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) { Artwork(song, 40.dp); Spacer(Modifier.width(12.dp)); SongText(song, Modifier.fillMaxWidth()); if (index == state.currentSongIndex) Icon(Icons.Default.PlayArrow, "Playing", tint = MaterialTheme.colorScheme.primary) } } }
+    LazyColumn { itemsIndexed(queue) { index, song -> Row(Modifier.fillMaxWidth().clickable { controller.dispatch(PlayerCommand.PlayAt(index)) }.padding(vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+        Artwork(song, 40.dp); Spacer(Modifier.width(12.dp)); SongText(song, Modifier.weight(1f))
+        if (index == state.currentSongIndex) Icon(Icons.Default.PlayArrow, "Playing", tint = MaterialTheme.colorScheme.primary)
+        IconButton(enabled = index > 0, onClick = { onReorder(index, index - 1) }) { Icon(Icons.Default.ArrowUpward, "Move up") }
+        IconButton(enabled = index < queue.lastIndex, onClick = { onReorder(index, index + 1) }) { Icon(Icons.Default.ArrowDownward, "Move down") }
+    } } }
 }
 
 @Composable
