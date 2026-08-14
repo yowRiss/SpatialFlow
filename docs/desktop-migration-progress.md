@@ -267,7 +267,8 @@ Status: in progress.
   LRC/karaoke parsing, and a plain-lyrics fallback. Desktop local tracks first
   read embedded lyrics via jaudiotagger.
 - [x] Effects: add scrollable desktop controls for the supported VLC effects
-  contract, including all ten native libVLC equalizer bands.
+  contract, including all ten native libVLC equalizer bands. Effect values are
+  stored in shared desktop preferences and restored into VLC on launch.
 - [x] Settings: route the desktop navigation to the shared adaptive settings UI
   using the desktop Koin `SettingsViewModel`, so appearance, playback, and
   scan preferences persist across launches. The desktop root also applies the
@@ -343,3 +344,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Explore-detail persistent playlist import compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Online-play history persistence compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persistent mixed playlist queue resolution compiles successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persistent desktop effects configuration and VLC restore wiring compile successfully. |

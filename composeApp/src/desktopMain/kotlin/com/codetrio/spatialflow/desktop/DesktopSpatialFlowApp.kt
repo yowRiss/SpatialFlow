@@ -93,6 +93,7 @@ import com.codetrio.spatialflow.shared.ui.library.HistoryScreen
 import com.codetrio.spatialflow.shared.ui.explore.AccountScreen
 import com.codetrio.spatialflow.shared.account.GoogleAuthClient
 import com.codetrio.spatialflow.shared.viewmodel.SettingsViewModel
+import com.codetrio.spatialflow.shared.settings.SettingsStore
 import com.codetrio.spatialflow.shared.update.GitHubUpdateChecker
 import com.codetrio.spatialflow.shared.update.UpdateInstaller
 import com.codetrio.spatialflow.shared.update.UpdateStatus
@@ -159,6 +160,7 @@ private class DesktopPlayerViewModel {
     private val lyricsCatalog: LyricsCatalog = GlobalContext.get().get()
     private val authClient: GoogleAuthClient = GlobalContext.get().get()
     private val settingsViewModel: SettingsViewModel = GlobalContext.get().get()
+    private val settingsStore: SettingsStore = GlobalContext.get().get()
     private val songDownloader = DesktopSongDownloader(GlobalContext.get().get<FfmpegRunner>())
     private val updateInstaller: UpdateInstaller = GlobalContext.get().get()
     private val httpClient: HttpClient = GlobalContext.get().get()
@@ -174,8 +176,13 @@ private class DesktopPlayerViewModel {
 
     init {
         persistenceScope.launch {
-            settingsViewModel.uiState.collect { settings ->
+            settingsStore.settings.collect { settings ->
                 playbackController.setVolumeNormalization(settings.normalizeVolume)
+                playbackController.setBassBoost(settings.effects.bassDb, settings.effects.bassEnabled)
+                playbackController.setLoudnessGain(settings.effects.loudnessDb, settings.effects.loudnessEnabled)
+                playbackController.setEqualizer(settings.effects.equalizerBands)
+                playbackController.setCrossfadeDuration(settings.effects.crossfadeMs)
+                playbackController.setPlaybackSpeed(settings.effects.playbackSpeed)
             }
         }
         persistenceScope.launch {
@@ -271,6 +278,7 @@ private class DesktopPlayerViewModel {
     fun repository(): LibraryRepository = libraryRepository
     fun auth(): GoogleAuthClient = authClient
     fun settings(): SettingsViewModel = settingsViewModel
+    fun settingsStore(): SettingsStore = settingsStore
     fun catalog(): MusicCatalog = musicCatalog
     fun playOnline(song: SongItem) {
         state = state.copy(notice = "Resolving ${song.title}…")
@@ -525,7 +533,7 @@ fun DesktopSpatialFlowApp() {
                     DesktopDestination.Playlists -> PlaylistScreen(viewModel.repository(), viewModel::playPlaylist)
                     DesktopDestination.Favourites -> FavouritesScreen(state, viewModel)
                     DesktopDestination.Queue -> QueueScreen(state, viewModel)
-                    DesktopDestination.Effects -> EffectsScreen(viewModel.controller())
+                    DesktopDestination.Effects -> EffectsScreen(viewModel.controller(), viewModel.settingsStore())
                     DesktopDestination.Tags -> DesktopTagEditor(viewModel.playerState().currentSong) { message -> viewModel.selectDestination(DesktopDestination.Tags) }
                     DesktopDestination.Settings -> SpatialFlowApp(viewModel.settings())
                 }
