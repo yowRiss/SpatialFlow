@@ -79,6 +79,7 @@ import com.codetrio.spatialflow.shared.model.SongItem
 import com.codetrio.spatialflow.shared.player.PlaybackController
 import com.codetrio.spatialflow.shared.player.PlayerCommand
 import com.codetrio.spatialflow.shared.player.PlayerUiState
+import com.codetrio.spatialflow.shared.platform.MediaControls
 import com.codetrio.spatialflow.shared.data.innertube.MusicCatalog
 import com.codetrio.spatialflow.shared.ui.explore.ExploreScreen
 import com.codetrio.spatialflow.shared.ui.player.EffectsScreen
@@ -157,6 +158,7 @@ private class DesktopPlayerViewModel {
     private val songDownloader = DesktopSongDownloader()
     private val updateInstaller: UpdateInstaller = GlobalContext.get().get()
     private val httpClient: HttpClient = GlobalContext.get().get()
+    private val mediaControls: MediaControls = GlobalContext.get().get()
     private var streamingQueue: List<SongItem> = emptyList()
     private var selectedIndex = -1
     var state by mutableStateOf(loadInitialState())
@@ -246,7 +248,10 @@ private class DesktopPlayerViewModel {
         }
     }
 
-    fun close() { playbackController.release() }
+    fun close() {
+        mediaControls.clear()
+        playbackController.release()
+    }
     fun playerState(): PlayerUiState = playbackController.state.value
     fun playerQueue(): List<SongItem> = streamingQueue.ifEmpty { state.queue.map(::asSong) }
     fun controller(): PlaybackController = playbackController
@@ -353,6 +358,7 @@ private class DesktopPlayerViewModel {
             history = (listOf(track) + state.history.filterNot { it.id == track.id }).take(50),
             notice = null,
         )
+        mediaControls.publishNowPlaying(asSong(track), true)
         persistenceScope.launch {
             libraryRepository.recordHistory(
                 SongItem.local(track.id.hashCode().toLong(), track.title, track.artist, -1, track.file.absolutePath, (track.durationSeconds ?: 0) * 1_000L, track.file.lastModified()),
@@ -370,6 +376,7 @@ private class DesktopPlayerViewModel {
             positionSeconds = playback.currentSong?.let { playback.positionMs / 1_000f } ?: state.positionSeconds,
             notice = if (playback.isProcessing && playback.currentSong != null) "Loading ${playback.currentSong.title}…" else state.notice,
         )
+        mediaControls.publishNowPlaying(playback.currentSong, playback.isPlaying)
     }
 
     private fun asSong(track: DesktopTrack) = SongItem.local(

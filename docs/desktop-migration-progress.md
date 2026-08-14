@@ -203,9 +203,10 @@ Status: in progress.
 - [x] FFmpeg tasks: define a shared runner contract and add a desktop actual
   that executes internally-built argument lists with `ProcessBuilder`, without
   invoking a shell. It uses the configured/system `ffmpeg` executable.
-- [x] Haptics and media controls: add shared boundaries with intentional desktop
-  no-op stubs, Android haptic feedback, and migration-safe Android control
-  placeholders. System tray/media-session integration remains lower priority.
+- [x] Haptics and media controls: add shared boundaries, Android haptic
+  feedback, and desktop system-tray now-playing notifications wired to player
+  state. The tray integration safely falls back to a no-op where the desktop
+  environment does not expose a system tray.
 - [x] Update checks: add a shared GitHub Releases latest-release checker. The
   desktop installer/update application flow remains platform-specific.
 - [x] Desktop onboarding platform: implement no-prompt desktop permissions,
@@ -321,3 +322,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Unified local/streaming queue management compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Shared Paxsenix Musixmatch fallback compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:createDistributable --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Generated a self-contained Compose Desktop app image for RPM packaging. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop now-playing tray integration compiles successfully. |
