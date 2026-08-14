@@ -228,9 +228,9 @@ Status: in progress.
 - [ ] Desktop distribution: libVLC must be bundled into the Compose package and
   Flatpak manifest. The `vlcj` binding compiles without native binaries but
   discovers libVLC at runtime; the current Flatpak template does not yet ship it.
-- [x] Update hand-off: add `UpdateInstaller` expect/actuals. Desktop opens the
-  verified GitHub release URL in the system browser; installation is delegated
-  to the platform package/installer.
+- [x] Update hand-off: add `UpdateInstaller` expect/actuals. Desktop Home
+  exposes an in-app GitHub Releases check and opens a verified available-release
+  URL in the system browser; installation is delegated to the package manager.
 - [x] Effects/DSP execution (supported libVLC subset): ten-band EQ, bass boost
   (low EQ bands), loudness enhancement (EQ preamp), LUFS normalization, and
   playback rate are exposed through the shared playback contract. Reverb, 8D
@@ -311,3 +311,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop embedded-lyrics lookup and its provider fallback hand-off compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop root theme now observes the persistent shared settings state. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop favourites now use the shared SQLDelight repository end-to-end. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop Home update-check interaction and browser installer hand-off compile successfully. |

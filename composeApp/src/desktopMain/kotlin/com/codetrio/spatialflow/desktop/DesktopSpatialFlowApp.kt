@@ -89,6 +89,9 @@ import com.codetrio.spatialflow.shared.ui.library.HistoryScreen
 import com.codetrio.spatialflow.shared.ui.explore.AccountScreen
 import com.codetrio.spatialflow.shared.account.GoogleAuthClient
 import com.codetrio.spatialflow.shared.viewmodel.SettingsViewModel
+import com.codetrio.spatialflow.shared.update.GitHubUpdateChecker
+import com.codetrio.spatialflow.shared.update.UpdateInstaller
+import com.codetrio.spatialflow.shared.update.UpdateStatus
 import com.codetrio.spatialflow.shared.ui.player.FullPlayer
 import com.codetrio.spatialflow.shared.ui.player.MiniPlayer
 import com.codetrio.spatialflow.shared.ui.player.QueueDrawer
@@ -103,6 +106,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collect
+import io.ktor.client.HttpClient
 import org.koin.core.context.GlobalContext
 import java.io.File
 import java.util.prefs.Preferences
@@ -151,6 +155,8 @@ private class DesktopPlayerViewModel {
     private val authClient: GoogleAuthClient = GlobalContext.get().get()
     private val settingsViewModel: SettingsViewModel = GlobalContext.get().get()
     private val songDownloader = DesktopSongDownloader()
+    private val updateInstaller: UpdateInstaller = GlobalContext.get().get()
+    private val httpClient: HttpClient = GlobalContext.get().get()
     private var streamingQueue: List<SongItem> = emptyList()
     private var selectedIndex = -1
     var state by mutableStateOf(loadInitialState())
@@ -287,6 +293,21 @@ private class DesktopPlayerViewModel {
                 state = state.copy(notice = "Downloaded ${song.title} to ${file.absolutePath}")
             }.onFailure { error ->
                 state = state.copy(notice = "Could not download ${song.title}: ${error.message ?: "network error"}")
+            }
+        }
+    }
+    fun checkForUpdates() {
+        state = state.copy(notice = "Checking for updates…")
+        persistenceScope.launch {
+            when (val result = GitHubUpdateChecker(httpClient, "yowRiss", "SpatialFlow").check("1.8.0")) {
+                UpdateStatus.UpToDate -> state = state.copy(notice = "SpatialFlow is up to date.")
+                is UpdateStatus.Available -> {
+                    updateInstaller.openRelease(result.release).fold(
+                        onSuccess = { state = state.copy(notice = "Update ${result.release.version} is available; opening the release page.") },
+                        onFailure = { state = state.copy(notice = "Update ${result.release.version} is available: ${result.release.releaseUrl}") },
+                    )
+                }
+                is UpdateStatus.Failed -> state = state.copy(notice = "Could not check for updates: ${result.reason}")
             }
         }
     }
@@ -474,6 +495,7 @@ private fun HomeScreen(state: DesktopUiState, viewModel: DesktopPlayerViewModel)
     Text("Good listening", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
     Text(if (state.library.isEmpty()) "Choose a folder to build your local library." else "${state.library.size} tracks ready in ${state.libraryRoot?.name}.", style = MaterialTheme.typography.bodyLarge)
     Button(onClick = viewModel::chooseLibrary) { Icon(Icons.Outlined.FolderOpen, null); Spacer(Modifier.width(8.dp)); Text("Choose music folder") }
+    TextButton(onClick = viewModel::checkForUpdates) { Text("Check for updates") }
     if (state.history.isNotEmpty()) {
         Text("Recently played", style = MaterialTheme.typography.titleLarge)
         TrackList(state.history.take(8), state, viewModel)
