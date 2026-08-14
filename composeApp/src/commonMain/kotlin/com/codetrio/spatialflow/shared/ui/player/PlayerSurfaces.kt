@@ -190,6 +190,12 @@ fun SyncedLyrics(lines: List<LyricLine>, positionMs: Long, onSeekTo: (Long) -> U
     }
     Column(Modifier.fillMaxSize().padding(24.dp)) {
         Row(Modifier.fillMaxWidth()) { IconButton(onDismiss) { Icon(Icons.Default.ArrowBack, "Back") }; Text("Lyrics", style = MaterialTheme.typography.headlineMedium) }
+        if (lines.isEmpty()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("No synced lyrics found for this song.", color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+            }
+            return@Column
+        }
         LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(18.dp)) { itemsIndexed(lines) { index, line ->
         val active = line.startTimeMs <= positionMs && (lines.getOrNull(index + 1)?.startTimeMs ?: Long.MAX_VALUE) > positionMs
         Box(Modifier.fillMaxWidth().clickable { onSeekTo(line.startTimeMs) }) { KaraokeLine(line, positionMs, active, index < activeIndex) }
