@@ -22,7 +22,9 @@ class DesktopLocalMusicLibrary : LocalMusicLibrary {
         val title = tag?.getFirst(FieldKey.TITLE).orEmpty().ifBlank { split.last() }
         val artist = tag?.getFirst(FieldKey.ARTIST).orEmpty().ifBlank { split.getOrNull(0)?.takeIf { split.size > 1 } ?: "Unknown Artist" }
         val duration = runCatching { AudioFileIO.read(file).audioHeader.trackLength.toLong() * 1_000 }.getOrDefault(0)
-        return SongItem.local(file.absolutePath.hashCode().toLong(), title, artist, -1, file.absolutePath, duration, file.lastModified())
+        return SongItem.local(file.absolutePath.hashCode().toLong(), title, artist, -1, file.absolutePath, duration, file.lastModified()).also {
+            it.thumbnailUrl = DesktopArtworkCache.extract(tag, file)
+        }
     }
 
     private companion object {

@@ -75,6 +75,7 @@ import androidx.compose.ui.unit.dp
 import com.codetrio.spatialflow.shared.ui.SpatialFlowTheme
 import com.codetrio.spatialflow.shared.library.LibraryRepository
 import com.codetrio.spatialflow.shared.library.LocalMusicLibrary
+import com.codetrio.spatialflow.shared.library.DesktopArtworkCache
 import com.codetrio.spatialflow.shared.model.SongItem
 import com.codetrio.spatialflow.shared.player.PlaybackController
 import com.codetrio.spatialflow.shared.player.PlayerCommand
@@ -126,6 +127,7 @@ private data class DesktopTrack(
     val artist: String,
     val album: String?,
     val durationSeconds: Int?,
+    val thumbnailUrl: String? = null,
 ) {
     val id: String get() = file.absolutePath
 }
@@ -193,7 +195,7 @@ private class DesktopPlayerViewModel {
         persistenceScope.launch {
             localMusicLibrary.scan(root.absolutePath).onSuccess { songs ->
                 val tracks = songs.mapNotNull { song -> song.path?.let(::File)?.takeIf(File::isFile)?.let { file ->
-                    DesktopTrack(file, song.title, song.artist, null, (song.duration / 1_000).toInt())
+                    DesktopTrack(file, song.title, song.artist, null, (song.duration / 1_000).toInt(), song.thumbnailUrl)
                 } }
                 state = state.copy(
                     library = tracks,
@@ -299,7 +301,7 @@ private class DesktopPlayerViewModel {
             state = state.copy(notice = "The saved audio file for ${song.title} is no longer available.")
             return
         }
-        playTrack(DesktopTrack(file, song.title, song.artist, null, (song.duration / 1_000).toInt()), state.queue.ifEmpty { state.library })
+        playTrack(DesktopTrack(file, song.title, song.artist, null, (song.duration / 1_000).toInt(), song.thumbnailUrl), state.queue.ifEmpty { state.library })
     }
     fun download(song: SongItem) {
         state = state.copy(notice = "Downloading ${song.title}…")
@@ -360,10 +362,7 @@ private class DesktopPlayerViewModel {
         )
         mediaControls.publishNowPlaying(asSong(track), true)
         persistenceScope.launch {
-            libraryRepository.recordHistory(
-                SongItem.local(track.id.hashCode().toLong(), track.title, track.artist, -1, track.file.absolutePath, (track.durationSeconds ?: 0) * 1_000L, track.file.lastModified()),
-                System.currentTimeMillis(),
-            )
+            libraryRepository.recordHistory(asSong(track), System.currentTimeMillis())
         }
     }
 
@@ -383,7 +382,7 @@ private class DesktopPlayerViewModel {
         id = track.id.hashCode().toLong(), rawTitle = track.title, rawArtist = track.artist,
         albumId = -1, path = track.file.absolutePath, duration = (track.durationSeconds ?: 0) * 1_000L,
         dateAdded = track.file.lastModified(),
-    )
+    ).also { it.thumbnailUrl = track.thumbnailUrl }
 
     private fun loadInitialState(): DesktopUiState {
         val root = preferences.get("libraryRoot", null)?.let(::File)?.takeIf(File::isDirectory)
@@ -404,11 +403,8 @@ private val audioExtensions = setOf("mp3", "flac", "m4a", "aac", "ogg", "opus", 
 
 private fun readDesktopTrack(file: File): DesktopTrack {
     val fallback = file.nameWithoutExtension
-    val fields = runCatching {
-        AudioFileIO.read(file).tag?.let { tag ->
-            Triple(tag.getFirst(FieldKey.TITLE), tag.getFirst(FieldKey.ARTIST), tag.getFirst(FieldKey.ALBUM))
-        }
-    }.getOrNull()
+    val tag = runCatching { AudioFileIO.read(file).tag }.getOrNull()
+    val fields = tag?.let { Triple(it.getFirst(FieldKey.TITLE), it.getFirst(FieldKey.ARTIST), it.getFirst(FieldKey.ALBUM)) }
     val (title, artist, album) = fields ?: Triple("", "", "")
     val splitName = fallback.split(" - ", limit = 2)
     return DesktopTrack(
@@ -417,6 +413,7 @@ private fun readDesktopTrack(file: File): DesktopTrack {
         artist = artist.takeUnless(String::isBlank) ?: splitName.getOrNull(0)?.takeIf { splitName.size > 1 } ?: "Unknown artist",
         album = album.takeUnless(String::isBlank),
         durationSeconds = audioDurationSeconds(file),
+        thumbnailUrl = DesktopArtworkCache.extract(tag, file),
     )
 }
 
