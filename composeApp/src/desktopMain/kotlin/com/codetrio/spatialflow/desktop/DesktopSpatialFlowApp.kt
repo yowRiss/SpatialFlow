@@ -291,6 +291,7 @@ private class DesktopPlayerViewModel {
     fun controller(): PlaybackController = playbackController
     fun repository(): LibraryRepository = libraryRepository
     fun auth(): GoogleAuthClient = authClient
+    fun youtubeSession(): DesktopYouTubeSession = youtubeSession
     fun settings(): SettingsViewModel = settingsViewModel
     fun settingsStore(): SettingsStore = settingsStore
     fun catalog(): MusicCatalog = musicCatalog
@@ -546,7 +547,7 @@ fun DesktopSpatialFlowApp() {
                 when (state.destination) {
                     DesktopDestination.Home -> HomeScreen(state, viewModel)
                     DesktopDestination.Explore -> ExploreScreen(viewModel.catalog(), viewModel::playOnline, viewModel.repository())
-                    DesktopDestination.Account -> AccountScreen(viewModel.auth())
+                    DesktopDestination.Account -> DesktopYouTubeMusicLogin(viewModel.youtubeSession())
                     DesktopDestination.Library -> LibraryScreen(state, viewModel)
                     DesktopDestination.History -> HistoryScreen(viewModel.repository(), viewModel::playShared)
                     DesktopDestination.Playlists -> PlaylistScreen(viewModel.repository(), viewModel::playPlaylist)
