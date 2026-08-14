@@ -3,6 +3,7 @@ package com.codetrio.spatialflow.shared.di
 import com.codetrio.spatialflow.shared.network.createPlatformHttpClient
 import com.codetrio.spatialflow.shared.account.GoogleAuthClient
 import com.codetrio.spatialflow.shared.account.createGoogleAuthClient
+import com.codetrio.spatialflow.shared.account.DesktopYouTubeSession
 import com.codetrio.spatialflow.shared.library.DesktopLocalMusicLibrary
 import com.codetrio.spatialflow.shared.library.DesktopLibraryRepository
 import com.codetrio.spatialflow.shared.library.LibraryRepository
@@ -35,6 +36,7 @@ val desktopModule: Module = module {
     single<OnboardingPlatform> { get<DesktopOnboardingPlatform>() }
     single<PlaybackController> { createPlaybackController() }
     single<GoogleAuthClient> { createGoogleAuthClient() }
+    single { DesktopYouTubeSession(get()) }
     single<UpdateInstaller> { createUpdateInstaller() }
     single { createPlatformHttpClient() }
 }

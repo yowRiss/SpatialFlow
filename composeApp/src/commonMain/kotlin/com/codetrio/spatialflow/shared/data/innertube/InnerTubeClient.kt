@@ -23,6 +23,8 @@ data class InnerTubeConfig(
 
 /** Ktor transport for typed repositories and parsers; no Android/NewPipe code leaks into commonMain. */
 class InnerTubeClient(private val http: HttpClient, private val config: InnerTubeConfig) {
+    @Volatile private var sessionCookie: String? = config.cookie
+    fun updateCookie(cookie: String?) { sessionCookie = cookie?.takeIf(String::isNotBlank) }
     suspend fun search(query: String, filter: SearchFilter? = null, continuation: String? = null): Result<JsonObject> = request("search") {
         put("context", webRemixContext())
         if (continuation != null) put("continuation", continuation) else {
@@ -53,7 +55,7 @@ class InnerTubeClient(private val http: HttpClient, private val config: InnerTub
             header("X-Origin", "https://music.youtube.com")
             header("X-YouTube-Client-Name", "67")
             header("X-YouTube-Client-Version", "1.20260531.05.00")
-            config.cookie?.let { header("Cookie", it) }
+            sessionCookie?.let { header("Cookie", it) }
             config.visitorData?.let { header("X-Goog-Visitor-Id", it) }
             setBody(buildJsonObject(body).toString())
         }

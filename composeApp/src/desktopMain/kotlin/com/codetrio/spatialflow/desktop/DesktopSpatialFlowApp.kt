@@ -106,6 +106,7 @@ import com.codetrio.spatialflow.shared.ui.player.SleepTimerDialog
 import com.codetrio.spatialflow.shared.data.lyrics.LyricsCatalog
 import com.codetrio.spatialflow.shared.data.lyrics.LyricLine
 import com.codetrio.spatialflow.shared.data.lyrics.SharedLrcParser
+import com.codetrio.spatialflow.shared.account.DesktopYouTubeSession
 import com.codetrio.spatialflow.shared.data.lyrics.TrackMetadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -160,6 +161,7 @@ private class DesktopPlayerViewModel {
     private val musicCatalog: MusicCatalog = GlobalContext.get().get()
     private val lyricsCatalog: LyricsCatalog = GlobalContext.get().get()
     private val authClient: GoogleAuthClient = GlobalContext.get().get()
+    @Suppress("unused") private val youtubeSession: DesktopYouTubeSession = GlobalContext.get().get()
     private val settingsViewModel: SettingsViewModel = GlobalContext.get().get()
     private val settingsStore: SettingsStore = GlobalContext.get().get()
     private val songDownloader = DesktopSongDownloader(GlobalContext.get().get<FfmpegRunner>())

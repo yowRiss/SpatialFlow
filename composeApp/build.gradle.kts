@@ -66,6 +66,7 @@ kotlin {
                 implementation(libs.jaudiotagger)
                 implementation(libs.vlcj)
                 implementation(libs.sqldelight.sqlite.driver)
+                implementation("me.friwi:jcefmaven:146.0.10")
             }
         }
     }
