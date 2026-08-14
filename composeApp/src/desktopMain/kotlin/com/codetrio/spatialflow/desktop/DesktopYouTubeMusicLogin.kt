@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import com.codetrio.spatialflow.shared.account.DesktopYouTubeSession
 import me.friwi.jcefmaven.CefAppBuilder
 import org.cef.browser.CefBrowser
+import org.cef.browser.CefFrame
+import org.cef.handler.CefLoadHandlerAdapter
 import java.io.File
 
 @Composable
@@ -36,6 +38,15 @@ fun DesktopYouTubeMusicLogin(session: DesktopYouTubeSession) {
                     setInstallDir(File(System.getProperty("user.home"), ".local/share/SpatialFlow/jcef"))
                 }.build()
                 val client = app.createClient()
+                client.addLoadHandler(object : CefLoadHandlerAdapter() {
+                    override fun onLoadEnd(browser: CefBrowser, frame: CefFrame, httpStatusCode: Int) {
+                        if (frame.isMain && browser.url.startsWith("https://music.youtube.com")) {
+                            session.captureFromEmbeddedBrowser { captured ->
+                                if (captured) status = "Connected to YouTube Music."
+                            }
+                        }
+                    }
+                })
                 client.createBrowser("https://accounts.google.com/ServiceLogin?service=youtube&passive=true&continue=https://music.youtube.com/", false, false).also { browser.value = it }.getUIComponent()
             },
         )
