@@ -2,6 +2,8 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+val desktopAppVersion = "1.8.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}"
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.multiplatform.library)
@@ -84,13 +86,14 @@ compose.resources {
 compose.desktop {
     application {
         mainClass = "com.codetrio.spatialflow.desktop.MainKt"
+        jvmArgs += "-Dspatialflow.version=$desktopAppVersion"
 
         nativeDistributions {
             targetFormats(TargetFormat.Rpm, TargetFormat.Msi)
             packageName = "spatialflow"
             // CI builds must sort above an already-installed RPM. Local builds
             // retain the base version while GitHub Actions uses its run number.
-            packageVersion = "1.8.${System.getenv("GITHUB_RUN_NUMBER") ?: "0"}"
+            packageVersion = desktopAppVersion
             description = "SpatialFlow music player"
             vendor = "SpatialFlow"
             linux {

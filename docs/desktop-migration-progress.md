@@ -233,6 +233,8 @@ Status: in progress.
 - [x] Update hand-off: add `UpdateInstaller` expect/actuals. Desktop Home
   exposes an in-app GitHub Releases check and opens a verified available-release
   URL in the system browser; installation is delegated to the package manager.
+  The generated RPM build version is passed into the packaged JVM and used for
+  the update comparison rather than a hard-coded base version.
 - [x] Effects/DSP execution (supported libVLC subset): ten-band EQ, bass boost
   (low EQ bands), loudness enhancement (EQ preamp), LUFS normalization, and
   playback rate are exposed through the shared playback contract. Reverb, 8D
@@ -349,3 +351,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persistent desktop effects configuration and VLC restore wiring compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Finished stream-download registration in the live desktop library compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Startup merging of managed offline downloads into the library compiles successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Generated package-version propagation into desktop update checks compiles successfully. |

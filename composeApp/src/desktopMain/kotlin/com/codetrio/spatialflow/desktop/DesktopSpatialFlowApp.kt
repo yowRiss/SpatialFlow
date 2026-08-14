@@ -349,7 +349,7 @@ private class DesktopPlayerViewModel {
     fun checkForUpdates() {
         state = state.copy(notice = "Checking for updates…")
         persistenceScope.launch {
-            when (val result = GitHubUpdateChecker(httpClient, "yowRiss", "SpatialFlow").check("1.8.0")) {
+            when (val result = GitHubUpdateChecker(httpClient, "yowRiss", "SpatialFlow").check(desktopAppVersion)) {
                 UpdateStatus.UpToDate -> state = state.copy(notice = "SpatialFlow is up to date.")
                 is UpdateStatus.Available -> {
                     updateInstaller.openRelease(result.release).fold(
@@ -471,6 +471,7 @@ private class DesktopPlayerViewModel {
 }
 
 private val audioExtensions = setOf("mp3", "flac", "m4a", "aac", "ogg", "opus", "wav", "aiff", "aif")
+private val desktopAppVersion: String = System.getProperty("spatialflow.version") ?: "1.8.0"
 
 private fun readDesktopTrack(file: File): DesktopTrack {
     val fallback = file.nameWithoutExtension
