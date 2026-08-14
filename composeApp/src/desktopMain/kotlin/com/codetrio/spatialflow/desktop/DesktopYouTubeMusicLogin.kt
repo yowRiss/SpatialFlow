@@ -23,6 +23,7 @@ import org.cef.browser.CefBrowser
 import org.cef.browser.CefFrame
 import org.cef.handler.CefLoadHandlerAdapter
 import java.io.File
+import javax.swing.SwingUtilities
 
 @Composable
 fun DesktopYouTubeMusicLogin(session: DesktopYouTubeSession) {
@@ -42,7 +43,7 @@ fun DesktopYouTubeMusicLogin(session: DesktopYouTubeSession) {
                     override fun onLoadEnd(browser: CefBrowser, frame: CefFrame, httpStatusCode: Int) {
                         if (frame.isMain && browser.url.startsWith("https://music.youtube.com")) {
                             session.captureFromEmbeddedBrowser { captured ->
-                                if (captured) status = "Connected to YouTube Music."
+                                if (captured) SwingUtilities.invokeLater { status = "Connected to YouTube Music." }
                             }
                         }
                     }
