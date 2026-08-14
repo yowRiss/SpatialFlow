@@ -245,6 +245,8 @@ Status: in progress.
 - [x] Library + history: add shared list/history screens wired to the SQLDelight
   `LibraryRepository`, with shared favourite toggle, clear-history actions, and
   a desktop navigation route that replays persisted local history entries.
+  Desktop Library/Favourites now observe the same repository-backed favourite
+  IDs as song actions, including a one-time Preferences migration.
 - [x] Explore / streaming: add desktop Explore route backed by the shared Ktor
   InnerTube search catalog; selecting an online song resolves its player
   manifest to the highest-bitrate direct audio URL before VLC queues it. Album,
@@ -308,3 +310,4 @@ Status: in progress.
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop persistent History destination and replay hand-off compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop embedded-lyrics lookup and its provider fallback hand-off compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop root theme now observes the persistent shared settings state. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop favourites now use the shared SQLDelight repository end-to-end. |

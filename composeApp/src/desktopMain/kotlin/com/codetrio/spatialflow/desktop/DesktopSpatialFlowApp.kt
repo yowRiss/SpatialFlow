@@ -102,6 +102,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 import org.koin.core.context.GlobalContext
 import java.io.File
 import java.util.prefs.Preferences
@@ -132,7 +133,7 @@ private data class DesktopUiState(
     val currentTrack: DesktopTrack? = null,
     val isPlaying: Boolean = false,
     val positionSeconds: Float = 0f,
-    val favourites: Set<String> = emptySet(),
+    val favourites: Set<Long> = emptySet(),
     val history: List<DesktopTrack> = emptyList(),
     val notice: String? = null,
 )
@@ -154,6 +155,20 @@ private class DesktopPlayerViewModel {
     private var selectedIndex = -1
     var state by mutableStateOf(loadInitialState())
         private set
+
+    init {
+        persistenceScope.launch {
+            val legacyFavourites = preferences.get("favourites", "")
+                .lineSequence().filter(String::isNotBlank).map { it.hashCode().toLong() }.toSet()
+            legacyFavourites.forEach { legacyId ->
+                if (legacyId !in libraryRepository.favouriteSongIds.value) libraryRepository.toggleFavourite(legacyId)
+            }
+            if (legacyFavourites.isNotEmpty()) preferences.remove("favourites")
+            libraryRepository.favouriteSongIds.collect { favourites ->
+                state = state.copy(favourites = favourites)
+            }
+        }
+    }
 
     fun chooseLibrary() {
         val chooser = JFileChooser().apply {
@@ -210,10 +225,6 @@ private class DesktopPlayerViewModel {
     }
 
     fun toggleFavourite(track: DesktopTrack) {
-        val favourites = state.favourites.toMutableSet()
-        if (!favourites.add(track.id)) favourites.remove(track.id)
-        preferences.put("favourites", favourites.joinToString("\n"))
-        state = state.copy(favourites = favourites)
         persistenceScope.launch { libraryRepository.toggleFavourite(track.id.hashCode().toLong()) }
     }
 
@@ -337,7 +348,8 @@ private class DesktopPlayerViewModel {
 
     private fun loadInitialState(): DesktopUiState {
         val root = preferences.get("libraryRoot", null)?.let(::File)?.takeIf(File::isDirectory)
-        val favourites = preferences.get("favourites", "").lineSequence().filter(String::isNotBlank).toSet()
+        val favourites = preferences.get("favourites", "").lineSequence()
+            .filter(String::isNotBlank).map { it.hashCode().toLong() }.toSet()
         val tracks = root?.walkTopDown()
             ?.onEnter { !it.isHidden }
             ?.filter { it.isFile && it.extension.lowercase() in audioExtensions }
@@ -487,7 +499,7 @@ private fun LibraryScreen(state: DesktopUiState, viewModel: DesktopPlayerViewMod
 private fun FavouritesScreen(state: DesktopUiState, viewModel: DesktopPlayerViewModel) = Column(Modifier.fillMaxSize().padding(32.dp)) {
     Text("Favourites", style = MaterialTheme.typography.headlineMedium)
     Spacer(Modifier.height(16.dp))
-    val favourites = state.library.filter { it.id in state.favourites }
+    val favourites = state.library.filter { it.id.hashCode().toLong() in state.favourites }
     if (favourites.isEmpty()) Text("Mark tracks with the heart to keep them here.") else TrackList(favourites, state, viewModel)
 }
 
@@ -542,7 +554,8 @@ private fun TrackRow(track: DesktopTrack, state: DesktopUiState, viewModel: Desk
         Text("${track.artist} · ${track.album ?: track.file.parentFile.name} · ${track.durationSeconds?.let(::formatTime) ?: "Unknown duration"}", style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
     IconButton({ viewModel.addToQueue(track) }) { Icon(Icons.Outlined.QueueMusic, "Add to queue") }
-    IconToggleButton(track.id in state.favourites, { viewModel.toggleFavourite(track) }) { Icon(if (track.id in state.favourites) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder, "Favourite") }
+    val favouriteId = track.id.hashCode().toLong()
+    IconToggleButton(favouriteId in state.favourites, { viewModel.toggleFavourite(track) }) { Icon(if (favouriteId in state.favourites) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder, "Favourite") }
 }
 
 @Composable
