@@ -336,7 +336,11 @@ private class DesktopPlayerViewModel {
         state = state.copy(notice = "Downloading ${song.title}…")
         persistenceScope.launch {
             songDownloader.download(song).onSuccess { file ->
-                state = state.copy(notice = "Downloaded ${song.title} to ${file.absolutePath}")
+                val downloadedTrack = readDesktopTrack(file).copy(thumbnailUrl = song.thumbnailUrl)
+                state = state.copy(
+                    library = (state.library.filterNot { it.file.absolutePath == file.absolutePath } + downloadedTrack).sortedBy { it.title.lowercase() },
+                    notice = "Downloaded ${song.title}; it is ready for offline playback.",
+                )
             }.onFailure { error ->
                 state = state.copy(notice = "Could not download ${song.title}: ${error.message ?: "network error"}")
             }
