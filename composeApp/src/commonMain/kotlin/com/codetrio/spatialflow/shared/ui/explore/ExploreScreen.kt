@@ -19,9 +19,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,10 +36,15 @@ import com.codetrio.spatialflow.shared.data.innertube.MusicCatalog
 import com.codetrio.spatialflow.shared.data.innertube.SearchItem
 import com.codetrio.spatialflow.shared.data.innertube.OnlineSong
 import com.codetrio.spatialflow.shared.model.SongItem
+import com.codetrio.spatialflow.shared.library.LibraryRepository
+import com.codetrio.spatialflow.shared.library.Playlist
 import com.codetrio.spatialflow.shared.ui.components.ArtworkImage
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
-fun ExploreScreen(catalog: MusicCatalog, onPlay: (SongItem) -> Unit) {
+fun ExploreScreen(catalog: MusicCatalog, onPlay: (SongItem) -> Unit, repository: LibraryRepository? = null) {
     var query by remember { mutableStateOf("") }
     var results by remember { mutableStateOf<List<SearchItem>>(emptyList()) }
     var message by remember { mutableStateOf("Search YouTube Music without an account.") }
@@ -49,7 +56,7 @@ fun ExploreScreen(catalog: MusicCatalog, onPlay: (SongItem) -> Unit) {
     }
     val detail = selected
     if (detail != null) {
-        ExploreDetailScreen(catalog, detail, onBack = { selected = null }, onPlay = onPlay)
+        ExploreDetailScreen(catalog, detail, repository, onBack = { selected = null }, onPlay = onPlay)
         return
     }
     Column(Modifier.fillMaxSize().padding(24.dp)) {
@@ -69,9 +76,13 @@ fun ExploreScreen(catalog: MusicCatalog, onPlay: (SongItem) -> Unit) {
 }
 
 @Composable
-private fun ExploreDetailScreen(catalog: MusicCatalog, item: SearchItem, onBack: () -> Unit, onPlay: (SongItem) -> Unit) {
+private fun ExploreDetailScreen(catalog: MusicCatalog, item: SearchItem, repository: LibraryRepository?, onBack: () -> Unit, onPlay: (SongItem) -> Unit) {
     var songs by remember(item) { mutableStateOf<List<OnlineSong>>(emptyList()) }
     var status by remember(item) { mutableStateOf("Loading…") }
+    var selectingPlaylist by remember(item) { mutableStateOf(false) }
+    val emptyPlaylists = remember { MutableStateFlow(emptyList<Playlist>()) }
+    val playlists by (repository?.playlists ?: emptyPlaylists).collectAsState()
+    val scope = rememberCoroutineScope()
     val title = when (item) { is SearchItem.Album -> item.album.title; is SearchItem.Artist -> item.artist.title; is SearchItem.Playlist -> item.playlist.title; is SearchItem.Song -> item.song.title }
     val artwork = when (item) { is SearchItem.Album -> item.album.thumbnailUrl; is SearchItem.Artist -> item.artist.thumbnailUrl; is SearchItem.Playlist -> item.playlist.thumbnailUrl; is SearchItem.Song -> item.song.thumbnailUrl }
     LaunchedEffect(item) {
@@ -86,6 +97,21 @@ private fun ExploreDetailScreen(catalog: MusicCatalog, item: SearchItem, onBack:
     Column(Modifier.fillMaxSize().padding(24.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) { Icon(Icons.Default.ArrowBack, "Back", Modifier.clickable(onClick = onBack)); ArtworkImage(artwork, title, Modifier.padding(start = 12.dp).size(64.dp)); Text(title, Modifier.padding(start = 14.dp), style = MaterialTheme.typography.headlineSmall, maxLines = 2, overflow = TextOverflow.Ellipsis) }
         Text(status, Modifier.padding(vertical = 16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (repository != null && songs.isNotEmpty()) {
+            TextButton({ selectingPlaylist = !selectingPlaylist }) { Text(if (item is SearchItem.Playlist) "Import into playlist" else "Save tracks to playlist") }
+            if (selectingPlaylist) {
+                if (playlists.isEmpty()) Text("Create a playlist first from the Playlists section.", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                playlists.forEach { playlist ->
+                    TextButton({
+                        scope.launch {
+                            songs.forEachIndexed { index, song -> repository.addSong(playlist.id, song.asSongItem(), index) }
+                            status = "Saved ${songs.size} tracks to ${playlist.name}."
+                            selectingPlaylist = false
+                        }
+                    }) { Text(playlist.name) }
+                }
+            }
+        }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) { items(songs, key = OnlineSong::videoId) { song -> ExploreSongRow(song) { onPlay(song.asSongItem()) } } }
     }
 }

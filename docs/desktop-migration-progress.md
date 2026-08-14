@@ -254,6 +254,8 @@ Status: in progress.
   manifest to the highest-bitrate direct audio URL before VLC queues it. Album,
   artist, and playlist search results now open browse-detail track lists. The
   active playback queue now preserves and mixes local and streamed tracks.
+  Resolved YouTube Music playlist (or album/artist) tracks can now be imported
+  into a selected persistent desktop playlist.
 - [x] Mini player + full player: add shared player surfaces and wire them to the
   desktop playback controller, including seeking, repeat, transport, and an
   artwork-safe fallback surface.
@@ -335,3 +337,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Background FFmpeg EBU R128 loudness measurement and VLC normalization hand-off compile successfully. |
 | 2026-08-14 | `ffmpeg … -filter:a ebur128 …` | pass | Local FFmpeg emits an integrated loudness line (`I: -21.1 LUFS`) matching the desktop analyzer parser. |
 | 2026-08-14 | `ffmpeg … -c:a aac -metadata … track.m4a` + `ffprobe` | pass | Produced an M4A container with the expected title and artist metadata, matching the desktop offline-download command. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Explore-detail persistent playlist import compiles successfully. |

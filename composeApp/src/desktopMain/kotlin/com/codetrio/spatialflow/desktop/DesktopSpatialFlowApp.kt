@@ -497,7 +497,7 @@ fun DesktopSpatialFlowApp() {
                 state.notice?.let { Notice(it) }
                 when (state.destination) {
                     DesktopDestination.Home -> HomeScreen(state, viewModel)
-                    DesktopDestination.Explore -> ExploreScreen(viewModel.catalog(), viewModel::playOnline)
+                    DesktopDestination.Explore -> ExploreScreen(viewModel.catalog(), viewModel::playOnline, viewModel.repository())
                     DesktopDestination.Account -> AccountScreen(viewModel.auth())
                     DesktopDestination.Library -> LibraryScreen(state, viewModel)
                     DesktopDestination.History -> HistoryScreen(viewModel.repository(), viewModel::playShared)
