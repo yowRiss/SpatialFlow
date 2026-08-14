@@ -262,7 +262,8 @@ Status: in progress.
   candidates for the active player song, with confidence scoring, timed
   LRC/karaoke parsing, and a plain-lyrics fallback. Desktop local tracks first
   read embedded lyrics via jaudiotagger.
-- [x] Effects: add desktop controls for the supported VLC effects contract.
+- [x] Effects: add scrollable desktop controls for the supported VLC effects
+  contract, including all ten native libVLC equalizer bands.
 - [x] Settings: route the desktop navigation to the shared adaptive settings UI
   using the desktop Koin `SettingsViewModel`, so appearance, playback, and
   scan preferences persist across launches. The desktop root also applies the
@@ -328,3 +329,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop now-playing tray integration compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Embedded local artwork extraction/cache and playback metadata propagation compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Active local/remote artwork colour sampling and shared dynamic-theme wiring compile successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Scrollable ten-band desktop equalizer UI compiles successfully. |

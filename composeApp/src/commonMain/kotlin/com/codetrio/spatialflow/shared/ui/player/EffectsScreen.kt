@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -28,8 +30,8 @@ fun EffectsScreen(controller: PlaybackController) {
     var bass by remember { mutableStateOf(false) }; var bassDb by remember { mutableStateOf(0f) }
     var loudness by remember { mutableStateOf(false) }; var loudnessDb by remember { mutableStateOf(0f) }
     var crossfade by remember { mutableStateOf(0f) }; var speed by remember { mutableStateOf(1f) }
-    var bands by remember { mutableStateOf(List(5) { 0f }) }
-    Column(Modifier.fillMaxSize().padding(24.dp)) {
+    var bands by remember { mutableStateOf(List(10) { 0f }) }
+    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp)) {
         Text("Effects", style = MaterialTheme.typography.headlineMedium)
         Toggle("Volume normalization", normalization) { normalization = it; controller.setVolumeNormalization(it) }
         Toggle("Bass boost", bass) { bass = it; controller.setBassBoost(bassDb, it) }; EffectSlider("Bass", bassDb, -12f..12f) { bassDb = it; controller.setBassBoost(it, bass) }
