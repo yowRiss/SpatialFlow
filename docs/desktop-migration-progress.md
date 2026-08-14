@@ -256,7 +256,8 @@ Status: in progress.
 - [x] Lyrics: add the shared karaoke line surface; provider fetching and current
   track binding now evaluates SyncLRC, LRCLIB, and Paxsenix Spotify/YouTube
   candidates for the active player song, with confidence scoring, timed
-  LRC/karaoke parsing, and a plain-lyrics fallback.
+  LRC/karaoke parsing, and a plain-lyrics fallback. Desktop local tracks first
+  read embedded lyrics via jaudiotagger.
 - [x] Effects: add desktop controls for the supported VLC effects contract.
 - [x] Settings: route the desktop navigation to the shared adaptive settings UI
   using the desktop Koin `SettingsViewModel`, so appearance, playback, and
@@ -304,3 +305,4 @@ Status: in progress.
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop settings route now uses the persistent Koin-backed shared ViewModel. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop direct-stream downloader and player-action integration compile successfully. |
 | 2026-08-13 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop persistent History destination and replay hand-off compile successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop embedded-lyrics lookup and its provider fallback hand-off compile successfully. |

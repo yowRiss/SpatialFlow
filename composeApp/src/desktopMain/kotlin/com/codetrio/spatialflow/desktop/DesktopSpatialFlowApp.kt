@@ -280,6 +280,7 @@ private class DesktopPlayerViewModel {
     }
     suspend fun lyricsForCurrentSong(): List<LyricLine> {
         val song = playbackController.state.value.currentSong ?: return emptyList()
+        DesktopEmbeddedLyrics.read(song).takeIf { it.isNotEmpty() }?.let { return it }
         val metadata = TrackMetadata(song.title, song.artist, song.title, song.artist, durationMs = song.duration, filePath = song.path.orEmpty(), videoId = song.videoId)
         return lyricsCatalog.fetch(metadata).getOrNull()?.let { result ->
             SharedLrcParser.parse(result.syncedLyrics).ifEmpty { result.plainLyrics?.lines()?.filter(String::isNotBlank)?.mapIndexed { index, value -> LyricLine(index * 4_000L, value) }.orEmpty() }
