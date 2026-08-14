@@ -225,9 +225,9 @@ Status: in progress.
   `VlcjPlaybackController`. It begins the next eligible queue item during the
   configured end window, ramps outgoing/incoming volumes over 24 steps, then
   releases the outgoing native player and commits the next shared queue state.
-- [ ] Desktop distribution: libVLC must be bundled into the Compose package and
-  Flatpak manifest. The `vlcj` binding compiles without native binaries but
-  discovers libVLC at runtime; the current Flatpak template does not yet ship it.
+- [x] Fedora desktop distribution: package the Compose app image through a
+  controlled RPM spec which declares `vlc-libs`, so DNF installs the native
+  libVLC runtime required by `vlcj`. Flatpak still needs its own libVLC module.
 - [x] Update hand-off: add `UpdateInstaller` expect/actuals. Desktop Home
   exposes an in-app GitHub Releases check and opens a verified available-release
   URL in the system browser; installation is delegated to the package manager.
@@ -283,7 +283,7 @@ Status: in progress.
 - [x] Artwork loading: use Coil 3 Compose Multiplatform with the existing Ktor
   engines for remote YouTube artwork and local file artwork, retaining the
   initials artwork fallback while an image is unavailable.
-- [ ] Desktop libVLC packaging and provider-specific Apple Music parser parity
+- [ ] Flatpak libVLC module and provider-specific Apple Music parser parity
   remain in the active Phase 2/Phase 3 queue. Apple Music requires a renewable
   developer token and is intentionally not implemented with Android's embedded
   expiring token.
@@ -320,3 +320,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Playlist detail, replay, and remove-song actions compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Unified local/streaming queue management compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Shared Paxsenix Musixmatch fallback compiles successfully. |
+| 2026-08-14 | `./gradlew :composeApp:createDistributable --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Generated a self-contained Compose Desktop app image for RPM packaging. |

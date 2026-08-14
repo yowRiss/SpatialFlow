@@ -59,7 +59,16 @@ jobs:
           sudo apt-get install -y rpm fakeroot
 
       - name: Build Fedora RPM
-        run: ./gradlew :composeApp:compileKotlinDesktop :composeApp:packageRpm
+        env:
+          SPATIALFLOW_VERSION: 1.8.${{ github.run_number }}
+        run: |
+          ./gradlew :composeApp:compileKotlinDesktop :composeApp:createDistributable
+          mkdir -p build/rpm/SOURCES
+          tar -C composeApp/build/compose/binaries/main/app -czf build/rpm/SOURCES/spatialflow-app.tar.gz spatialflow
+          rpmbuild -bb packaging/rpm/spatialflow.spec \
+            --define "_topdir $PWD/build/rpm" \
+            --define "version $SPATIALFLOW_VERSION" \
+            --define "release 1"
 
       - name: Build Android APK
         if: env.ANDROID_SIGNING_AVAILABLE == 'true'
@@ -68,7 +77,7 @@ jobs:
       - name: Collect release assets and generate checksums
         run: |
           mkdir -p release-assets
-          rpm_file="$(find composeApp/build/compose/binaries -type f -name '*.rpm' -print -quit)"
+          rpm_file="$(find build/rpm/RPMS -type f -name '*.rpm' -print -quit)"
           test -n "$rpm_file"
           cp "$rpm_file" release-assets/SpatialFlow-fedora.rpm
           if [ -f app/build/outputs/apk/release/app-release.apk ]; then
