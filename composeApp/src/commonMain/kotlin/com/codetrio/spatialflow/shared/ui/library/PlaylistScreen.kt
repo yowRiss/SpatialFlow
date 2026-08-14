@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,11 +67,14 @@ fun PlaylistScreen(repository: LibraryRepository, onPlayQueue: (List<SongItem>, 
 private fun PlaylistDetailScreen(playlist: Playlist, repository: LibraryRepository, onBack: () -> Unit, onPlayQueue: (List<SongItem>, Int) -> Unit) {
     val scope = rememberCoroutineScope()
     var songs by remember(playlist.id) { mutableStateOf<List<SongItem>>(emptyList()) }
+    var renameDraft by remember(playlist.id) { mutableStateOf(playlist.name) }
+    var showRename by remember(playlist.id) { mutableStateOf(false) }
     LaunchedEffect(playlist.id) { songs = repository.songs(playlist.id) }
     Column(Modifier.fillMaxSize().padding(24.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.ArrowBack, "Back", Modifier.clickable(onClick = onBack))
-            Text(playlist.name, Modifier.padding(start = 16.dp).fillMaxWidth(), style = MaterialTheme.typography.headlineMedium)
+            Text(playlist.name, Modifier.padding(start = 16.dp).weight(1f), style = MaterialTheme.typography.headlineMedium)
+            IconButton({ showRename = true }) { Icon(Icons.Default.Edit, "Rename playlist") }
         }
         if (songs.isEmpty()) Text("No songs yet. Add one from the player actions menu.", Modifier.padding(top = 24.dp))
         songs.forEachIndexed { index, song ->
@@ -80,4 +86,14 @@ private fun PlaylistDetailScreen(playlist: Playlist, repository: LibraryReposito
             }
         }
     }
+    if (showRename) AlertDialog(
+        onDismissRequest = { showRename = false },
+        title = { Text("Rename playlist") },
+        text = { OutlinedTextField(renameDraft, { renameDraft = it }, label = { Text("Playlist name") }) },
+        confirmButton = { Button(onClick = {
+            scope.launch { repository.renamePlaylist(playlist.id, renameDraft.trim()) }
+            showRename = false
+        }, enabled = renameDraft.isNotBlank()) { Text("Save") } },
+        dismissButton = { TextButton({ showRename = false }) { Text("Cancel") } },
+    )
 }
