@@ -29,12 +29,16 @@ import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +54,7 @@ import com.codetrio.spatialflow.shared.player.PlaybackController
 import com.codetrio.spatialflow.shared.player.PlayerCommand
 import com.codetrio.spatialflow.shared.player.PlayerUiState
 import com.codetrio.spatialflow.shared.player.RepeatMode
+import com.codetrio.spatialflow.shared.player.SleepTimerMode
 import com.codetrio.spatialflow.shared.ui.components.ArtworkImage
 
 @Composable
@@ -71,7 +76,7 @@ fun MiniPlayer(state: PlayerUiState, controller: PlaybackController, onExpand: (
 }
 
 @Composable
-fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: PlaybackController, lyrics: List<LyricLine>, onDismiss: () -> Unit, onLyrics: () -> Unit, onQueue: () -> Unit, onActions: () -> Unit) {
+fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: PlaybackController, lyrics: List<LyricLine>, onDismiss: () -> Unit, onLyrics: () -> Unit, onQueue: () -> Unit, onActions: () -> Unit, onSleepTimer: () -> Unit) {
     val song = state.currentSong ?: return
     val duration = state.duration.coerceAtLeast(song.duration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()).coerceAtLeast(1)
     Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surface))).padding(24.dp)) {
@@ -91,8 +96,49 @@ fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: Playback
             IconButton({ controller.dispatch(PlayerCommand.Next) }) { Icon(Icons.Default.SkipNext, "Next", Modifier.size(36.dp)) }
             IconButton(onQueue) { Icon(Icons.Default.QueueMusic, "Queue") }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) { IconButton(onLyrics) { Icon(Icons.Default.Lyrics, "Lyrics") }; Text("${queue.size} tracks queued", style = MaterialTheme.typography.labelMedium) }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            IconButton(onLyrics) { Icon(Icons.Default.Lyrics, "Lyrics") }
+            Text("${queue.size} tracks queued", style = MaterialTheme.typography.labelMedium)
+            IconButton(onSleepTimer) { Icon(Icons.Default.Timer, "Sleep timer") }
+        }
     }
+}
+
+/** Desktop Compose counterpart of Android's SleepTimerBottomSheet. The engine
+ * owns countdown and end-of-playback behavior; this surface only dispatches
+ * the same shared commands. */
+@Composable
+fun SleepTimerDialog(controller: PlaybackController, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Sleep timer") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("Stop playback after a selected time or when playback reaches its end.")
+                listOf(15, 30, 45, 60, 90, 120).forEach { minutes ->
+                    TextButton(onClick = {
+                        controller.dispatch(PlayerCommand.SetSleepTimer(SleepTimerMode.CUSTOM, minutes))
+                        onDismiss()
+                    }) { Text("Stop in $minutes minutes") }
+                }
+                TextButton(onClick = {
+                    controller.dispatch(PlayerCommand.SetSleepTimer(SleepTimerMode.END_OF_SONG))
+                    onDismiss()
+                }) { Text("Stop at end of song") }
+                TextButton(onClick = {
+                    controller.dispatch(PlayerCommand.SetSleepTimer(SleepTimerMode.END_OF_QUEUE))
+                    onDismiss()
+                }) { Text("Stop at end of queue") }
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                controller.dispatch(PlayerCommand.SetSleepTimer(SleepTimerMode.OFF))
+                onDismiss()
+            }) { Text("Cancel timer") }
+        },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDismiss) { Text("Close") } },
+    )
 }
 
 @Composable

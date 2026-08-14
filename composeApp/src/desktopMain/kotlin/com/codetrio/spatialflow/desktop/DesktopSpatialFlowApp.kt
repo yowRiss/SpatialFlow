@@ -102,6 +102,7 @@ import com.codetrio.spatialflow.shared.ui.player.MiniPlayer
 import com.codetrio.spatialflow.shared.ui.player.QueueDrawer
 import com.codetrio.spatialflow.shared.ui.player.SyncedLyrics
 import com.codetrio.spatialflow.shared.ui.player.SongActionsDialog
+import com.codetrio.spatialflow.shared.ui.player.SleepTimerDialog
 import com.codetrio.spatialflow.shared.data.lyrics.LyricsCatalog
 import com.codetrio.spatialflow.shared.data.lyrics.LyricLine
 import com.codetrio.spatialflow.shared.data.lyrics.SharedLrcParser
@@ -512,6 +513,7 @@ fun DesktopSpatialFlowApp() {
     var playerSurface by remember { mutableStateOf(DesktopPlayerSurface.None) }
     var lyricLines by remember { mutableStateOf<List<LyricLine>>(emptyList()) }
     var showSongActions by remember { mutableStateOf(false) }
+    var showSleepTimer by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     DisposableEffect(Unit) { onDispose(viewModel::close) }
     LaunchedEffect(state.isPlaying) {
@@ -549,12 +551,13 @@ fun DesktopSpatialFlowApp() {
         }
     }
     when (playerSurface) {
-        DesktopPlayerSurface.Player -> FullPlayer(viewModel.playerState(), viewModel.playerQueue(), viewModel.controller(), lyricLines, { playerSurface = DesktopPlayerSurface.None }, { scope.launch { lyricLines = viewModel.lyricsForCurrentSong(); playerSurface = DesktopPlayerSurface.Lyrics } }, { playerSurface = DesktopPlayerSurface.Queue }, { showSongActions = true })
+        DesktopPlayerSurface.Player -> FullPlayer(viewModel.playerState(), viewModel.playerQueue(), viewModel.controller(), lyricLines, { playerSurface = DesktopPlayerSurface.None }, { scope.launch { lyricLines = viewModel.lyricsForCurrentSong(); playerSurface = DesktopPlayerSurface.Lyrics } }, { playerSurface = DesktopPlayerSurface.Queue }, { showSongActions = true }, { showSleepTimer = true })
         DesktopPlayerSurface.Queue -> QueueDrawer(viewModel.playerQueue(), viewModel.playerState(), viewModel.controller()) { playerSurface = DesktopPlayerSurface.Player }
         DesktopPlayerSurface.Lyrics -> SyncedLyrics(lyricLines, viewModel.playerState().positionMs) { playerSurface = DesktopPlayerSurface.Player }
         DesktopPlayerSurface.None -> Unit
     }
     viewModel.playerState().currentSong?.takeIf { showSongActions }?.let { song -> SongActionsDialog(song, viewModel.repository(), { viewModel.controller().dispatch(PlayerCommand.Next) }, { showSongActions = false }, onDownload = if (song.path?.startsWith("http") == true) ({ viewModel.download(song) }) else null) }
+    if (showSleepTimer) SleepTimerDialog(viewModel.controller()) { showSleepTimer = false }
     }
 }
 
