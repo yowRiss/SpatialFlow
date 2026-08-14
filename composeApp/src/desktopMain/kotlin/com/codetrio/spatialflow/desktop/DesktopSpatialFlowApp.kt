@@ -163,6 +163,9 @@ private class DesktopPlayerViewModel {
     private val mediaControls: MediaControls = GlobalContext.get().get()
     private var streamingQueue: List<SongItem> = emptyList()
     private var selectedIndex = -1
+    private var seededArtworkLocation: String? = null
+    var artworkSeed by mutableStateOf<Color?>(null)
+        private set
     var state by mutableStateOf(loadInitialState())
         private set
 
@@ -289,6 +292,7 @@ private class DesktopPlayerViewModel {
             val targetIndex = streamingQueue.lastIndex
             playbackController.setQueue(streamingQueue, targetIndex)
             playbackController.dispatch(PlayerCommand.PlayAt(targetIndex))
+            updateArtworkSeed(playable)
             state = state.copy(notice = null)
         }
     }
@@ -361,6 +365,7 @@ private class DesktopPlayerViewModel {
             notice = null,
         )
         mediaControls.publishNowPlaying(asSong(track), true)
+        updateArtworkSeed(asSong(track))
         persistenceScope.launch {
             libraryRepository.recordHistory(asSong(track), System.currentTimeMillis())
         }
@@ -376,6 +381,21 @@ private class DesktopPlayerViewModel {
             notice = if (playback.isProcessing && playback.currentSong != null) "Loading ${playback.currentSong.title}…" else state.notice,
         )
         mediaControls.publishNowPlaying(playback.currentSong, playback.isPlaying)
+        updateArtworkSeed(playback.currentSong)
+    }
+
+    private fun updateArtworkSeed(song: SongItem?) {
+        val location = song?.artworkLocation
+        if (location == seededArtworkLocation) return
+        seededArtworkLocation = location
+        if (location == null) {
+            artworkSeed = null
+            return
+        }
+        persistenceScope.launch {
+            val extracted = DesktopArtworkSeedExtractor.extract(location)
+            if (location == seededArtworkLocation) artworkSeed = extracted
+        }
     }
 
     private fun asSong(track: DesktopTrack) = SongItem.local(
@@ -430,6 +450,7 @@ fun DesktopSpatialFlowApp() {
     SpatialFlowTheme(
         amoledBlack = settings.amoledBlack,
         usePlatformDynamicColor = settings.dynamicAlbumTheme,
+        artworkSeed = if (settings.dynamicAlbumTheme) viewModel.artworkSeed else null,
     ) {
     val state = viewModel.state
     var playerSurface by remember { mutableStateOf(DesktopPlayerSurface.None) }

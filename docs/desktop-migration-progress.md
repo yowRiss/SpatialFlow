@@ -285,7 +285,8 @@ Status: in progress.
   engines for remote YouTube artwork and local file artwork, retaining the
   initials artwork fallback while an image is unavailable. Desktop scanning now
   extracts embedded tag covers to a local image cache and preserves their URIs
-  through queue/history/player adapters.
+  through queue/history/player adapters. A bounded desktop sampler now feeds
+  the active local or streamed cover's seed into the shared dynamic theme.
 - [ ] Flatpak libVLC module and provider-specific Apple Music parser parity
   remain in the active Phase 2/Phase 3 queue. Apple Music requires a renewable
   developer token and is intentionally not implemented with Android's embedded
@@ -326,3 +327,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:createDistributable --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Generated a self-contained Compose Desktop app image for RPM packaging. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop now-playing tray integration compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Embedded local artwork extraction/cache and playback metadata propagation compile successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Active local/remote artwork colour sampling and shared dynamic-theme wiring compile successfully. |
