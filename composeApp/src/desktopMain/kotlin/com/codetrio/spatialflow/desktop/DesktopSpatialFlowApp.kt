@@ -375,6 +375,11 @@ private class DesktopPlayerViewModel {
             .onSuccess { state = state.copy(notice = "Copied link to clipboard.") }
             .onFailure { state = state.copy(notice = "Could not copy link to clipboard.") }
     }
+    fun deleteLocal(song: SongItem) {
+        val file = song.path?.let(::File)?.takeIf(File::isFile) ?: return
+        if (file.delete()) state = state.copy(library = state.library.filterNot { it.file.absolutePath == file.absolutePath }, queue = state.queue.filterNot { it.file.absolutePath == file.absolutePath }, notice = "Deleted ${song.title}.")
+        else state = state.copy(notice = "Could not delete ${song.title}.")
+    }
     fun checkForUpdates() {
         state = state.copy(notice = "Checking for updates…")
         persistenceScope.launch {
@@ -581,7 +586,7 @@ fun DesktopSpatialFlowApp() {
         DesktopPlayerSurface.Lyrics -> SyncedLyrics(lyricLines, viewModel.playerState().positionMs, { position -> viewModel.controller().dispatch(PlayerCommand.SeekTo(position)) }) { playerSurface = DesktopPlayerSurface.Player }
         DesktopPlayerSurface.None -> Unit
     }
-    viewModel.playerState().currentSong?.takeIf { showSongActions }?.let { song -> SongActionsDialog(song, viewModel.repository(), { viewModel.controller().dispatch(PlayerCommand.Next) }, { showSongActions = false }, onDownload = if (song.path?.startsWith("http") == true) ({ viewModel.download(song) }) else null, onOpenExternal = if (song.path?.let(::File)?.isFile == true) ({ viewModel.openExternally(song) }) else null, onShare = { viewModel.copyShareLink(song) }) }
+    viewModel.playerState().currentSong?.takeIf { showSongActions }?.let { song -> SongActionsDialog(song, viewModel.repository(), { viewModel.controller().dispatch(PlayerCommand.Next) }, { showSongActions = false }, onDownload = if (song.path?.startsWith("http") == true) ({ viewModel.download(song) }) else null, onOpenExternal = if (song.path?.let(::File)?.isFile == true) ({ viewModel.openExternally(song) }) else null, onShare = { viewModel.copyShareLink(song) }, onDeleteLocal = if (song.path?.let(::File)?.isFile == true) ({ viewModel.deleteLocal(song) }) else null) }
     if (showSleepTimer) SleepTimerDialog(viewModel.controller()) { showSleepTimer = false }
     }
 }
