@@ -192,7 +192,7 @@ fun SyncedLyrics(lines: List<LyricLine>, positionMs: Long, onSeekTo: (Long) -> U
         Row(Modifier.fillMaxWidth()) { IconButton(onDismiss) { Icon(Icons.Default.ArrowBack, "Back") }; Text("Lyrics", style = MaterialTheme.typography.headlineMedium) }
         LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(18.dp)) { itemsIndexed(lines) { index, line ->
         val active = line.startTimeMs <= positionMs && (lines.getOrNull(index + 1)?.startTimeMs ?: Long.MAX_VALUE) > positionMs
-        Box(Modifier.fillMaxWidth().clickable { onSeekTo(line.startTimeMs) }) { KaraokeLine(line, positionMs, active) }
+        Box(Modifier.fillMaxWidth().clickable { onSeekTo(line.startTimeMs) }) { KaraokeLine(line, positionMs, active, index < activeIndex) }
         } }
     }
 }
@@ -200,11 +200,12 @@ fun SyncedLyrics(lines: List<LyricLine>, positionMs: Long, onSeekTo: (Long) -> U
 /** Uses enhanced-LRC word timestamps when present, while retaining the
  * Android player’s line-level fallback for ordinary synced lyrics. */
 @Composable
-private fun KaraokeLine(line: LyricLine, positionMs: Long, active: Boolean) {
+private fun KaraokeLine(line: LyricLine, positionMs: Long, active: Boolean, past: Boolean) {
     val activeColor = MaterialTheme.colorScheme.primary
     val inactiveColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .45f)
+    val emphasis by animateFloatAsState(if (active) 1f else if (past) .60f else .38f, tween(180), label = "lyricEmphasis")
     if (!line.isWordByWord || line.words.isEmpty()) {
-        Text(line.content, style = MaterialTheme.typography.headlineSmall, color = if (active) activeColor else inactiveColor, fontWeight = if (active) FontWeight.Bold else FontWeight.Normal)
+        Text(line.content, Modifier.graphicsLayer { alpha = emphasis }, style = MaterialTheme.typography.headlineSmall, color = if (active) activeColor else inactiveColor, fontWeight = if (active) FontWeight.Bold else FontWeight.Normal)
         return
     }
     // This is the same two-layer text technique as Android's
@@ -213,7 +214,7 @@ private fun KaraokeLine(line: LyricLine, positionMs: Long, active: Boolean) {
     val smoothPosition by animateFloatAsState(positionMs.toFloat(), tween(180, easing = LinearEasing), label = "karaokePosition")
     var layout: TextLayoutResult? = null
     val style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
-    Box {
+    Box(Modifier.graphicsLayer { alpha = emphasis }) {
         Text(line.content, style = style, color = inactiveColor)
         Text(
             line.content,
