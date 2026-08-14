@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -44,6 +45,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -168,12 +170,19 @@ fun QueueDrawer(queue: List<SongItem>, state: PlayerUiState, controller: Playbac
 }
 
 @Composable
-fun SyncedLyrics(lines: List<LyricLine>, positionMs: Long, onDismiss: () -> Unit) = Column(Modifier.fillMaxSize().padding(24.dp)) {
-    Row(Modifier.fillMaxWidth()) { IconButton(onDismiss) { Icon(Icons.Default.ArrowBack, "Back") }; Text("Lyrics", style = MaterialTheme.typography.headlineMedium) }
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(18.dp)) { itemsIndexed(lines) { index, line ->
+fun SyncedLyrics(lines: List<LyricLine>, positionMs: Long, onDismiss: () -> Unit) {
+    val listState = rememberLazyListState()
+    val activeIndex = lines.indexOfLast { it.startTimeMs <= positionMs }.coerceAtLeast(0)
+    LaunchedEffect(activeIndex, lines.size) {
+        if (lines.isNotEmpty()) listState.animateScrollToItem(activeIndex.coerceIn(lines.indices))
+    }
+    Column(Modifier.fillMaxSize().padding(24.dp)) {
+        Row(Modifier.fillMaxWidth()) { IconButton(onDismiss) { Icon(Icons.Default.ArrowBack, "Back") }; Text("Lyrics", style = MaterialTheme.typography.headlineMedium) }
+        LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(18.dp)) { itemsIndexed(lines) { index, line ->
         val active = line.startTimeMs <= positionMs && (lines.getOrNull(index + 1)?.startTimeMs ?: Long.MAX_VALUE) > positionMs
         KaraokeLine(line, positionMs, active)
-    } }
+        } }
+    }
 }
 
 /** Uses enhanced-LRC word timestamps when present, while retaining the
