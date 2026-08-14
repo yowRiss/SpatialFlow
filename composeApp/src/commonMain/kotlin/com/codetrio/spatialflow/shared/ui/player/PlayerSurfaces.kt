@@ -2,6 +2,9 @@ package com.codetrio.spatialflow.shared.ui.player
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,11 +49,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -195,21 +207,59 @@ private fun KaraokeLine(line: LyricLine, positionMs: Long, active: Boolean) {
         Text(line.content, style = MaterialTheme.typography.headlineSmall, color = if (active) activeColor else inactiveColor, fontWeight = if (active) FontWeight.Bold else FontWeight.Normal)
         return
     }
-    val timed = buildAnnotatedString {
-        line.words.forEachIndexed { index, word ->
-            val start = word.absoluteStartTimeMs
-            val end = start + word.durationMs.coerceAtLeast(
-                (line.words.getOrNull(index + 1)?.absoluteStartTimeMs ?: start + 600L) - start
-            )
-            val color = when {
-                positionMs >= end -> activeColor
-                positionMs >= start -> activeColor.copy(alpha = .82f)
-                else -> inactiveColor
+    // This is the same two-layer text technique as Android's
+    // SyncedLyricsCompose: dim text remains underneath while an off-screen,
+    // glowing copy is erased character-by-character ahead of the word sweep.
+    val smoothPosition by animateFloatAsState(positionMs.toFloat(), tween(180, easing = LinearEasing), label = "karaokePosition")
+    var layout: TextLayoutResult? = null
+    val style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold)
+    Box {
+        Text(line.content, style = style, color = inactiveColor)
+        Text(
+            line.content,
+            style = style.copy(shadow = Shadow(activeColor.copy(alpha = .42f), Offset.Zero, 16f)),
+            color = activeColor,
+            onTextLayout = { layout = it },
+            modifier = Modifier
+                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                .drawWithCache {
+                    onDrawWithContent {
+                        drawContent()
+                        layout?.let { eraseFutureKaraokeText(it, line.words, smoothPosition.toLong(), this) }
+                    }
+                },
+        )
+    }
+}
+
+private fun eraseFutureKaraokeText(layout: TextLayoutResult, words: List<com.codetrio.spatialflow.shared.data.lyrics.LyricWord>, positionMs: Long, scope: DrawScope) {
+    for (charIndex in 0 until layout.layoutInput.text.length) {
+        val word = words.firstOrNull { charIndex in it.charRange }
+            ?: words.lastOrNull { it.charRange.last < charIndex }
+            ?: words.firstOrNull()
+            ?: continue
+        val wordStart = word.absoluteStartTimeMs
+        val wordEnd = wordStart + word.durationMs.coerceAtLeast(120L)
+        val wordProgress = ((positionMs - wordStart).toFloat() / (wordEnd - wordStart).coerceAtLeast(1L)).coerceIn(0f, 1f)
+        val eased = 1f - (1f - wordProgress) * (1f - wordProgress) * (1f - wordProgress)
+        val range = word.charRange
+        val relative = (charIndex - range.first).toFloat() / range.count().coerceAtLeast(1)
+        val sweepWidth = .35f
+        val charProgress = ((eased * (1f + sweepWidth) - relative) / sweepWidth).coerceIn(0f, 1f)
+        if (charProgress < .99f) {
+            val path = layout.getPathForRange(charIndex, charIndex + 1)
+            if (charProgress < .01f) scope.drawPath(path, Color.Black, blendMode = BlendMode.DstOut)
+            else {
+                val bounds = layout.getBoundingBox(charIndex)
+                val centre = bounds.left + bounds.width * charProgress
+                scope.drawPath(
+                    path,
+                    Brush.horizontalGradient(0f to Color.Transparent, 1f to Color.Black, startX = centre - bounds.width, endX = centre + bounds.width),
+                    blendMode = BlendMode.DstOut,
+                )
             }
-            withStyle(SpanStyle(color = color, fontWeight = if (positionMs >= start) FontWeight.Bold else FontWeight.Normal)) { append(word.text) }
         }
     }
-    Text(timed, style = MaterialTheme.typography.headlineSmall)
 }
 
 @Composable private fun Artwork(song: SongItem, size: androidx.compose.ui.unit.Dp) = ArtworkImage(song.artworkLocation, song.title, Modifier.size(size))
