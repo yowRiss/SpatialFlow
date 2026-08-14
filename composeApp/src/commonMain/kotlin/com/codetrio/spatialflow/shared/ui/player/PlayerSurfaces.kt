@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Lyrics
@@ -77,7 +78,7 @@ fun MiniPlayer(state: PlayerUiState, controller: PlaybackController, onExpand: (
 }
 
 @Composable
-fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: PlaybackController, lyrics: List<LyricLine>, onDismiss: () -> Unit, onLyrics: () -> Unit, onQueue: () -> Unit, onActions: () -> Unit, onSleepTimer: () -> Unit) {
+fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: PlaybackController, lyrics: List<LyricLine>, isFavourite: Boolean, onToggleFavourite: () -> Unit, onDismiss: () -> Unit, onLyrics: () -> Unit, onQueue: () -> Unit, onActions: () -> Unit, onSleepTimer: () -> Unit) {
     val song = state.currentSong ?: return
     val duration = state.duration.coerceAtLeast(song.duration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()).coerceAtLeast(1)
     Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surface))).padding(24.dp)) {
@@ -87,7 +88,12 @@ fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: Playback
             IconButton(onActions) { Icon(Icons.Default.MoreVert, "More") }
         }
         Spacer(Modifier.height(28.dp)); Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Artwork(song, 300.dp) }
-        Spacer(Modifier.height(28.dp)); Row(verticalAlignment = Alignment.CenterVertically) { SongText(song, Modifier.fillMaxWidth()); IconButton({}) { Icon(Icons.Default.FavoriteBorder, "Favourite") } }
+        Spacer(Modifier.height(28.dp)); Row(verticalAlignment = Alignment.CenterVertically) {
+            SongText(song, Modifier.fillMaxWidth())
+            IconButton(onToggleFavourite) {
+                Icon(if (isFavourite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, if (isFavourite) "Remove from favourites" else "Add to favourites", tint = if (isFavourite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
+            }
+        }
         Spacer(Modifier.height(16.dp)); Slider(state.positionMs.coerceIn(0, duration.toLong()).toFloat(), { controller.dispatch(PlayerCommand.SeekTo(it.toLong())) }, valueRange = 0f..duration.toFloat())
         Row(Modifier.fillMaxWidth()) { Text(time(state.positionMs), Modifier.fillMaxWidth(), style = MaterialTheme.typography.labelSmall); Text(time(duration.toLong()), style = MaterialTheme.typography.labelSmall) }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
