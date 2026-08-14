@@ -52,6 +52,10 @@ fun DesktopYouTubeMusicLogin(session: DesktopYouTubeSession) {
             },
         )
         Button(onClick = { session.captureFromEmbeddedBrowser { captured -> status = if (captured) "Connected to YouTube Music." else "Complete sign-in in the page, then try again." } }) { Text("Finish sign-in") }
+        TextButton(onClick = {
+            browser.value?.loadURL("https://accounts.google.com/ServiceLogin?service=youtube&passive=true&continue=https://music.youtube.com/")
+            status = "Reloaded YouTube Music sign-in."
+        }) { Text("Reload sign-in") }
         if (session.isLoggedIn()) TextButton(onClick = {
             session.clear()
             browser.value?.loadURL("https://accounts.google.com/ServiceLogin?service=youtube&passive=true&continue=https://music.youtube.com/")
