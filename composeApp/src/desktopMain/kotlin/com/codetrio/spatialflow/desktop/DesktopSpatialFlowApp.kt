@@ -255,6 +255,9 @@ private class DesktopPlayerViewModel {
     fun toggleFavourite(track: DesktopTrack) {
         persistenceScope.launch { libraryRepository.toggleFavourite(track.id.hashCode().toLong()) }
     }
+    fun toggleFavourite(song: SongItem) {
+        persistenceScope.launch { libraryRepository.toggleFavourite(song.id) }
+    }
 
     fun addToQueue(track: DesktopTrack) {
         if (state.queue.none { it.id == track.id }) {
@@ -608,10 +611,23 @@ private fun LibraryScreen(state: DesktopUiState, viewModel: DesktopPlayerViewMod
 
 @Composable
 private fun FavouritesScreen(state: DesktopUiState, viewModel: DesktopPlayerViewModel) = Column(Modifier.fillMaxSize().padding(32.dp)) {
+    val history by viewModel.repository().history.collectAsState()
     Text("Favourites", style = MaterialTheme.typography.headlineMedium)
     Spacer(Modifier.height(16.dp))
-    val favourites = state.library.filter { it.id.hashCode().toLong() in state.favourites }
-    if (favourites.isEmpty()) Text("Mark tracks with the heart to keep them here.") else TrackList(favourites, state, viewModel)
+    val localFavourites = state.library.filter { it.id.hashCode().toLong() in state.favourites }
+    val streamingFavourites = history.map { it.song }
+        .filter { it.id in state.favourites && (it.videoId != null || it.path?.startsWith("http") == true) }
+        .distinctBy { it.id }
+    if (localFavourites.isEmpty() && streamingFavourites.isEmpty()) Text("Mark tracks with the heart to keep them here.")
+    if (localFavourites.isNotEmpty()) TrackList(localFavourites, state, viewModel)
+    streamingFavourites.forEach { song ->
+        Card(Modifier.fillMaxWidth().padding(top = 8.dp).clickable { viewModel.playShared(song) }) {
+            Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) { Text(song.title); Text(song.artist, style = MaterialTheme.typography.bodySmall) }
+                IconButton({ viewModel.toggleFavourite(song) }) { Icon(Icons.Outlined.Favorite, "Remove favourite") }
+            }
+        }
+    }
 }
 
 @Composable

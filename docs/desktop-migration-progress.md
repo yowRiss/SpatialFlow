@@ -251,7 +251,8 @@ Status: in progress.
   a desktop navigation route that replays persisted local history entries.
   Desktop Library/Favourites now observe the same repository-backed favourite
   IDs as song actions, including a one-time Preferences migration. Resolved
-  streaming plays now write through the same history repository as local plays.
+  streaming plays now write through the same history repository as local plays,
+  and their persisted metadata now appears in Favourites too.
 - [x] Explore / streaming: add desktop Explore route backed by the shared Ktor
   InnerTube search catalog; selecting an online song resolves its player
   manifest to the highest-bitrate direct audio URL before VLC queues it. Album,
@@ -355,3 +356,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Startup merging of managed offline downloads into the library compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Generated package-version propagation into desktop update checks compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persisted selected-library scan-on-launch behavior compiles successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persistent streaming favourites in the desktop Favourites destination compile successfully. |
