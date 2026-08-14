@@ -235,7 +235,15 @@ private class DesktopPlayerViewModel {
     }
 
     fun addToQueue(track: DesktopTrack) {
-        if (state.queue.none { it.id == track.id }) state = state.copy(queue = state.queue + track, notice = "Added ${track.title} to the queue.")
+        if (state.queue.none { it.id == track.id }) {
+            val updatedQueue = state.queue + track
+            state = state.copy(queue = updatedQueue, notice = "Added ${track.title} to the queue.")
+            if (streamingQueue.isNotEmpty()) {
+                val currentIndex = playbackController.state.value.currentSongIndex.coerceAtLeast(0)
+                streamingQueue = streamingQueue + asSong(track)
+                playbackController.setQueue(streamingQueue, currentIndex.coerceAtMost(streamingQueue.lastIndex))
+            }
+        }
     }
 
     fun close() { playbackController.release() }
@@ -269,9 +277,11 @@ private class DesktopPlayerViewModel {
                 duration = player.durationMs.takeIf { it > 0 } ?: song.duration,
                 thumbnailUrl = player.thumbnailUrl ?: song.thumbnailUrl,
             )
-            streamingQueue = listOf(playable)
-            playbackController.setQueue(streamingQueue)
-            playbackController.dispatch(PlayerCommand.PlayAt(0))
+            val existingQueue = streamingQueue.ifEmpty { state.queue.map(::asSong) }
+            streamingQueue = existingQueue.filterNot { it.videoId == playable.videoId } + playable
+            val targetIndex = streamingQueue.lastIndex
+            playbackController.setQueue(streamingQueue, targetIndex)
+            playbackController.dispatch(PlayerCommand.PlayAt(targetIndex))
             state = state.copy(notice = null)
         }
     }
@@ -332,6 +342,7 @@ private class DesktopPlayerViewModel {
     private fun playTrack(track: DesktopTrack, queue: List<DesktopTrack>) {
         val songs = queue.map(::asSong)
         val index = queue.indexOfFirst { it.id == track.id }.coerceAtLeast(0)
+        streamingQueue = songs
         playbackController.setQueue(songs, index)
         playbackController.dispatch(PlayerCommand.PlayAt(index))
         state = state.copy(

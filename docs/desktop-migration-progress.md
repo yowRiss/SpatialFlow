@@ -250,7 +250,8 @@ Status: in progress.
 - [x] Explore / streaming: add desktop Explore route backed by the shared Ktor
   InnerTube search catalog; selecting an online song resolves its player
   manifest to the highest-bitrate direct audio URL before VLC queues it. Album,
-  artist, and playlist search results now open browse-detail track lists.
+  artist, and playlist search results now open browse-detail track lists. The
+  active playback queue now preserves and mixes local and streamed tracks.
 - [x] Mini player + full player: add shared player surfaces and wire them to the
   desktop playback controller, including seeking, repeat, transport, and an
   artwork-safe fallback surface.
@@ -315,3 +316,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop favourites now use the shared SQLDelight repository end-to-end. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop Home update-check interaction and browser installer hand-off compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Playlist detail, replay, and remove-song actions compile successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Unified local/streaming queue management compiles successfully. |
