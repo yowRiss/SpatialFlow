@@ -159,7 +159,7 @@ private class DesktopPlayerViewModel {
     private val lyricsCatalog: LyricsCatalog = GlobalContext.get().get()
     private val authClient: GoogleAuthClient = GlobalContext.get().get()
     private val settingsViewModel: SettingsViewModel = GlobalContext.get().get()
-    private val songDownloader = DesktopSongDownloader()
+    private val songDownloader = DesktopSongDownloader(GlobalContext.get().get<FfmpegRunner>())
     private val updateInstaller: UpdateInstaller = GlobalContext.get().get()
     private val httpClient: HttpClient = GlobalContext.get().get()
     private val mediaControls: MediaControls = GlobalContext.get().get()

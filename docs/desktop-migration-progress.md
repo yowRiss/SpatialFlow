@@ -272,8 +272,9 @@ Status: in progress.
 - [x] Tag editor: add a desktop tag editor backed by jaudiotagger for local
   title, artist, and album metadata.
 - [x] Song actions / sleep timer: add play-next, favourite, playlist creation,
-  playlist insertion, desktop direct-stream downloading to `~/Music/SpatialFlow`,
-  plus custom/end-of-song/end-of-queue sleep behavior.
+  playlist insertion, desktop direct-stream downloading to `~/Music/SpatialFlow`
+  through FFmpeg AAC/M4A transcode plus title/artist tag writing, and
+  custom/end-of-song/end-of-queue sleep behavior.
 - [x] Snackbar/global visual chrome: add the Compose Canvas animated mesh
   gradient replacement for Android's custom background view.
 - [x] Account: add a desktop account route exposing the PKCE system-browser
@@ -333,3 +334,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Scrollable ten-band desktop equalizer UI compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Background FFmpeg EBU R128 loudness measurement and VLC normalization hand-off compile successfully. |
 | 2026-08-14 | `ffmpeg … -filter:a ebur128 …` | pass | Local FFmpeg emits an integrated loudness line (`I: -21.1 LUFS`) matching the desktop analyzer parser. |
+| 2026-08-14 | `ffmpeg … -c:a aac -metadata … track.m4a` + `ffprobe` | pass | Produced an M4A container with the expected title and artist metadata, matching the desktop offline-download command. |
