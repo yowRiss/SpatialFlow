@@ -13,7 +13,11 @@ class DesktopYouTubeSession(private val client: InnerTubeClient) {
     private val preferences = Preferences.userRoot().node("com/codetrio/spatialflow/account")
     init { client.updateCookie(preferences.get("yt_cookies", null)) }
     fun saveCookie(cookie: String) { preferences.put("yt_cookies", cookie); client.updateCookie(cookie) }
-    fun clear() { preferences.remove("yt_cookies"); client.updateCookie(null) }
+    fun clear() {
+        preferences.remove("yt_cookies")
+        client.updateCookie(null)
+        CefCookieManager.getGlobalManager().deleteCookies("https://music.youtube.com", "")
+    }
     fun isLoggedIn(): Boolean = !preferences.get("yt_cookies", "").isBlank()
     fun captureFromEmbeddedBrowser(onCaptured: (Boolean) -> Unit) {
         val cookies = mutableListOf<CefCookie>()

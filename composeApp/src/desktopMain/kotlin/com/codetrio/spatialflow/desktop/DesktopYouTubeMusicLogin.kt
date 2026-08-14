@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -39,6 +40,11 @@ fun DesktopYouTubeMusicLogin(session: DesktopYouTubeSession) {
             },
         )
         Button(onClick = { session.captureFromEmbeddedBrowser { captured -> status = if (captured) "Connected to YouTube Music." else "Complete sign-in in the page, then try again." } }) { Text("Finish sign-in") }
+        if (session.isLoggedIn()) TextButton(onClick = {
+            session.clear()
+            browser.value?.loadURL("https://accounts.google.com/ServiceLogin?service=youtube&passive=true&continue=https://music.youtube.com/")
+            status = "Signed out of YouTube Music."
+        }) { Text("Log out") }
     }
     DisposableEffect(Unit) { onDispose { browser.value?.close(true) } }
 }
