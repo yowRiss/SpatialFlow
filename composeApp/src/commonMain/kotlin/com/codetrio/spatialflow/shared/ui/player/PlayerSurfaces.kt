@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -90,6 +91,9 @@ fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: Playback
         Spacer(Modifier.height(16.dp)); Slider(state.positionMs.coerceIn(0, duration.toLong()).toFloat(), { controller.dispatch(PlayerCommand.SeekTo(it.toLong())) }, valueRange = 0f..duration.toFloat())
         Row(Modifier.fillMaxWidth()) { Text(time(state.positionMs), Modifier.fillMaxWidth(), style = MaterialTheme.typography.labelSmall); Text(time(duration.toLong()), style = MaterialTheme.typography.labelSmall) }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+            IconButton({ controller.dispatch(PlayerCommand.SetShuffle(!state.isShuffleEnabled)) }) {
+                Icon(Icons.Default.Shuffle, "Shuffle", tint = if (state.isShuffleEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
+            }
             IconButton({ controller.dispatch(PlayerCommand.SetRepeatMode(nextRepeat(state.repeatMode))) }) { Icon(Icons.Default.Repeat, "Repeat") }
             IconButton({ controller.dispatch(PlayerCommand.Previous) }) { Icon(Icons.Default.SkipPrevious, "Previous", Modifier.size(36.dp)) }
             Surface(Modifier.size(70.dp), CircleShape, color = MaterialTheme.colorScheme.primary) { IconButton({ controller.dispatch(PlayerCommand.TogglePlayback) }) { Icon(if (state.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, "Play or pause", Modifier.size(42.dp), tint = MaterialTheme.colorScheme.onPrimary) } }

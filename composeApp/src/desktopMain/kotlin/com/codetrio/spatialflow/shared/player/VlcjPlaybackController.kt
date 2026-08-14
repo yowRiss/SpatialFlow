@@ -14,6 +14,7 @@ import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import kotlin.math.roundToInt
 import kotlin.math.pow
+import kotlin.random.Random
 
 /**
  * libVLC-backed desktop player. libVLC is discovered by vlcj at runtime; if it
@@ -148,7 +149,11 @@ class VlcjPlaybackController : PlaybackController {
         }
     }
 
-    private fun nextIndex(): Int = if (queue.isEmpty()) -1 else (mutableState.value.currentSongIndex + 1).floorMod(queue.size)
+    private fun nextIndex(): Int = when {
+        queue.isEmpty() -> -1
+        !mutableState.value.isShuffleEnabled || queue.size == 1 -> (mutableState.value.currentSongIndex + 1).floorMod(queue.size)
+        else -> queue.indices.filter { it != mutableState.value.currentSongIndex }.random(Random.Default)
+    }
     private fun previousIndex(): Int = if (queue.isEmpty()) -1 else (mutableState.value.currentSongIndex - 1).floorMod(queue.size)
     private fun Int.floorMod(size: Int) = if (size == 0) -1 else ((this % size) + size) % size
 
