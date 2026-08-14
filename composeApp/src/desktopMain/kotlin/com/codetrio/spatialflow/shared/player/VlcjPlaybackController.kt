@@ -144,8 +144,8 @@ class VlcjPlaybackController : PlaybackController {
         val current = mutableState.value.currentSongIndex
         when (mutableState.value.repeatMode) {
             RepeatMode.ONE -> playAt(current)
-            RepeatMode.ALL -> playAt((current + 1).floorMod(queue.size))
-            RepeatMode.OFF -> if (current < queue.lastIndex) playAt(current + 1) else mutableState.value = mutableState.value.copy(isPlaying = false)
+            RepeatMode.ALL -> playAt(nextIndex())
+            RepeatMode.OFF -> if (mutableState.value.isShuffleEnabled || current < queue.lastIndex) playAt(nextIndex()) else mutableState.value = mutableState.value.copy(isPlaying = false)
         }
     }
 
