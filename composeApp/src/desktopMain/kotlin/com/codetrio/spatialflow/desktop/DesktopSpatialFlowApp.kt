@@ -117,6 +117,8 @@ import io.ktor.client.HttpClient
 import org.koin.core.context.GlobalContext
 import java.io.File
 import java.awt.Desktop
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.util.prefs.Preferences
 import javax.sound.sampled.AudioSystem
 import javax.swing.JFileChooser
@@ -367,6 +369,12 @@ private class DesktopPlayerViewModel {
         runCatching { if (Desktop.isDesktopSupported()) Desktop.getDesktop().open(file) }
             .onFailure { state = state.copy(notice = "Could not open ${song.title} in an external player.") }
     }
+    fun copyShareLink(song: SongItem) {
+        val value = song.videoId?.let { "https://music.youtube.com/watch?v=$it" } ?: song.path ?: return
+        runCatching { Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(value), null) }
+            .onSuccess { state = state.copy(notice = "Copied link to clipboard.") }
+            .onFailure { state = state.copy(notice = "Could not copy link to clipboard.") }
+    }
     fun checkForUpdates() {
         state = state.copy(notice = "Checking for updates…")
         persistenceScope.launch {
@@ -573,7 +581,7 @@ fun DesktopSpatialFlowApp() {
         DesktopPlayerSurface.Lyrics -> SyncedLyrics(lyricLines, viewModel.playerState().positionMs, { position -> viewModel.controller().dispatch(PlayerCommand.SeekTo(position)) }) { playerSurface = DesktopPlayerSurface.Player }
         DesktopPlayerSurface.None -> Unit
     }
-    viewModel.playerState().currentSong?.takeIf { showSongActions }?.let { song -> SongActionsDialog(song, viewModel.repository(), { viewModel.controller().dispatch(PlayerCommand.Next) }, { showSongActions = false }, onDownload = if (song.path?.startsWith("http") == true) ({ viewModel.download(song) }) else null, onOpenExternal = if (song.path?.let(::File)?.isFile == true) ({ viewModel.openExternally(song) }) else null) }
+    viewModel.playerState().currentSong?.takeIf { showSongActions }?.let { song -> SongActionsDialog(song, viewModel.repository(), { viewModel.controller().dispatch(PlayerCommand.Next) }, { showSongActions = false }, onDownload = if (song.path?.startsWith("http") == true) ({ viewModel.download(song) }) else null, onOpenExternal = if (song.path?.let(::File)?.isFile == true) ({ viewModel.openExternally(song) }) else null, onShare = { viewModel.copyShareLink(song) }) }
     if (showSleepTimer) SleepTimerDialog(viewModel.controller()) { showSleepTimer = false }
     }
 }

@@ -24,7 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 /** Compose replacement for Android's SongActionsBottomSheet, retaining queue,
  * favourite, and persistent playlist actions. */
 @Composable
-fun SongActionsDialog(song: SongItem, repository: LibraryRepository, onPlayNext: () -> Unit, onDismiss: () -> Unit, onDownload: (() -> Unit)? = null, onOpenExternal: (() -> Unit)? = null) {
+fun SongActionsDialog(song: SongItem, repository: LibraryRepository, onPlayNext: () -> Unit, onDismiss: () -> Unit, onDownload: (() -> Unit)? = null, onOpenExternal: (() -> Unit)? = null, onShare: (() -> Unit)? = null) {
     val playlists by repository.playlists.collectAsState()
     val favourites by repository.favouriteSongIds.collectAsState()
     val scope = rememberCoroutineScope()
@@ -36,6 +36,7 @@ fun SongActionsDialog(song: SongItem, repository: LibraryRepository, onPlayNext:
             TextButton({ onPlayNext(); onDismiss() }) { Text("Play next") }
             onDownload?.let { download -> TextButton({ download(); onDismiss() }) { Text("Download for offline") } }
             onOpenExternal?.let { open -> TextButton({ open(); onDismiss() }) { Text("Open in external player") } }
+            onShare?.let { share -> TextButton({ share(); onDismiss() }) { Text("Copy share link") } }
             TextButton({ scope.launch { repository.toggleFavourite(song.id) } }) { Text(if (song.id in favourites) "Remove from favourites" else "Add to favourites") }
             Text("Add to playlist")
             playlists.forEach { playlist -> TextButton({ scope.launch { repository.addSong(playlist.id, song) } }) { Text(playlist.name) } }
