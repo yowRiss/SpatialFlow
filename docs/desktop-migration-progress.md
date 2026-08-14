@@ -280,7 +280,7 @@ Status: in progress.
   `Scan on launch` now controls selected-library startup scanning while managed
   offline downloads remain available.
 - [x] Tag editor: add a desktop tag editor backed by jaudiotagger for local
-  title, artist, and album metadata.
+  title, artist, album, and replaceable embedded cover-art metadata.
 - [x] Song actions / sleep timer: add play-next, favourite, playlist creation,
   playlist insertion, desktop direct-stream downloading to `~/Music/SpatialFlow`
   through FFmpeg AAC/M4A transcode plus title/artist tag writing, and
@@ -361,3 +361,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persistent streaming favourites in the desktop Favourites destination compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persistent mixed local/streaming Recently Played Home feed compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Bounded remote artwork-colour sampling compiles successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop embedded-cover tag replacement compiles successfully. |
