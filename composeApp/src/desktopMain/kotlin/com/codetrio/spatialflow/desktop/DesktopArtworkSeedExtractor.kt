@@ -13,7 +13,11 @@ internal object DesktopArtworkSeedExtractor {
         val image = when {
             location.isNullOrBlank() -> return null
             location.startsWith("file:") -> ImageIO.read(File(URI(location)))
-            location.startsWith("http://") || location.startsWith("https://") -> ImageIO.read(URL(location))
+            location.startsWith("http://") || location.startsWith("https://") -> URL(location).openConnection().run {
+                connectTimeout = 10_000
+                readTimeout = 15_000
+                inputStream.use { input -> ImageIO.read(input) }
+            }
             else -> ImageIO.read(File(location))
         } ?: return null
         val horizontalStep = max(1, image.width / 48)

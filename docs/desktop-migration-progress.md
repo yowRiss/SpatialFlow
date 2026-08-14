@@ -303,7 +303,8 @@ Status: in progress.
   initials artwork fallback while an image is unavailable. Desktop scanning now
   extracts embedded tag covers to a local image cache and preserves their URIs
   through queue/history/player adapters. A bounded desktop sampler now feeds
-  the active local or streamed cover's seed into the shared dynamic theme.
+  the active local or streamed cover's seed into the shared dynamic theme,
+  with network connect/read timeouts for remote artwork.
 - [ ] Flatpak libVLC module and provider-specific Apple Music parser parity
   remain in the active Phase 2/Phase 3 queue. Apple Music requires a renewable
   developer token and is intentionally not implemented with Android's embedded
@@ -359,3 +360,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persisted selected-library scan-on-launch behavior compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persistent streaming favourites in the desktop Favourites destination compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persistent mixed local/streaming Recently Played Home feed compiles successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Bounded remote artwork-colour sampling compiles successfully. |
