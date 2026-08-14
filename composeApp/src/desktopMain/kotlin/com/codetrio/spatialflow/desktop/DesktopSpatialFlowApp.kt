@@ -459,15 +459,13 @@ private class DesktopPlayerViewModel {
 
     private fun loadInitialState(): DesktopUiState {
         val root = preferences.get("libraryRoot", null)?.let(::File)?.takeIf(File::isDirectory)
+        val downloads = File(System.getProperty("user.home"), "Music/SpatialFlow").takeIf(File::isDirectory)
         val favourites = preferences.get("favourites", "").lineSequence()
             .filter(String::isNotBlank).map { it.hashCode().toLong() }.toSet()
-        val tracks = root?.walkTopDown()
-            ?.onEnter { !it.isHidden }
-            ?.filter { it.isFile && it.extension.lowercase() in audioExtensions }
-            ?.map(::readDesktopTrack)
-            ?.sortedBy { it.title.lowercase() }
-            ?.toList()
-            .orEmpty()
+        val tracks = listOfNotNull(root, downloads).distinctBy(File::getAbsolutePath)
+            .flatMap { directory -> directory.walkTopDown().onEnter { !it.isHidden }
+                .filter { it.isFile && it.extension.lowercase() in audioExtensions }.map(::readDesktopTrack).toList() }
+            .distinctBy { it.file.absolutePath }.sortedBy { it.title.lowercase() }
         return DesktopUiState(libraryRoot = root, library = tracks, queue = tracks, favourites = favourites)
     }
 }

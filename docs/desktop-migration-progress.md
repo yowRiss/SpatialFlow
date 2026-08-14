@@ -279,7 +279,8 @@ Status: in progress.
   playlist insertion, desktop direct-stream downloading to `~/Music/SpatialFlow`
   through FFmpeg AAC/M4A transcode plus title/artist tag writing, and
   custom/end-of-song/end-of-queue sleep behavior. Finished downloads are added
-  to the live desktop library immediately for offline playback.
+  to the live desktop library immediately for offline playback and merged from
+  `~/Music/SpatialFlow` during subsequent app launches.
 - [x] Snackbar/global visual chrome: add the Compose Canvas animated mesh
   gradient replacement for Android's custom background view.
 - [x] Account: add a desktop account route exposing the PKCE system-browser
@@ -347,3 +348,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persistent mixed playlist queue resolution compiles successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Persistent desktop effects configuration and VLC restore wiring compile successfully. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Finished stream-download registration in the live desktop library compiles successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Startup merging of managed offline downloads into the library compiles successfully. |
