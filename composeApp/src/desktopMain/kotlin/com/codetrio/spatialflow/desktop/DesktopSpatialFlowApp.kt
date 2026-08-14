@@ -445,7 +445,7 @@ fun DesktopSpatialFlowApp() {
                     DesktopDestination.Account -> AccountScreen(viewModel.auth())
                     DesktopDestination.Library -> LibraryScreen(state, viewModel)
                     DesktopDestination.History -> HistoryScreen(viewModel.repository(), viewModel::playShared)
-                    DesktopDestination.Playlists -> PlaylistScreen(viewModel.repository())
+                    DesktopDestination.Playlists -> PlaylistScreen(viewModel.repository(), viewModel::playShared)
                     DesktopDestination.Favourites -> FavouritesScreen(state, viewModel)
                     DesktopDestination.Queue -> QueueScreen(state, viewModel)
                     DesktopDestination.Effects -> EffectsScreen(viewModel.controller())

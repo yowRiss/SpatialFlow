@@ -277,6 +277,8 @@ Status: in progress.
   integration because no desktop OAuth client ID is bundled in source.
 - [x] Playlist management: add the desktop playlist-management route for
   persistent creation/deletion, alongside add-to-playlist from song actions.
+  Playlists now open a detail list where their saved local or streamed songs
+  can be played or removed.
 - [x] Artwork loading: use Coil 3 Compose Multiplatform with the existing Ktor
   engines for remote YouTube artwork and local file artwork, retaining the
   initials artwork fallback while an image is unavailable.
@@ -312,3 +314,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop root theme now observes the persistent shared settings state. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop favourites now use the shared SQLDelight repository end-to-end. |
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Desktop Home update-check interaction and browser installer hand-off compile successfully. |
+| 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dfile.encoding=UTF-8' -Dorg.gradle.parallel=false` | pass | Playlist detail, replay, and remove-song actions compile successfully. |
