@@ -48,6 +48,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -169,8 +172,35 @@ fun SyncedLyrics(lines: List<LyricLine>, positionMs: Long, onDismiss: () -> Unit
     Row(Modifier.fillMaxWidth()) { IconButton(onDismiss) { Icon(Icons.Default.ArrowBack, "Back") }; Text("Lyrics", style = MaterialTheme.typography.headlineMedium) }
     LazyColumn(verticalArrangement = Arrangement.spacedBy(18.dp)) { itemsIndexed(lines) { index, line ->
         val active = line.startTimeMs <= positionMs && (lines.getOrNull(index + 1)?.startTimeMs ?: Long.MAX_VALUE) > positionMs
-        Text(line.content, style = MaterialTheme.typography.headlineSmall, color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = .45f), fontWeight = if (active) FontWeight.Bold else FontWeight.Normal)
+        KaraokeLine(line, positionMs, active)
     } }
+}
+
+/** Uses enhanced-LRC word timestamps when present, while retaining the
+ * Android player’s line-level fallback for ordinary synced lyrics. */
+@Composable
+private fun KaraokeLine(line: LyricLine, positionMs: Long, active: Boolean) {
+    val activeColor = MaterialTheme.colorScheme.primary
+    val inactiveColor = MaterialTheme.colorScheme.onSurface.copy(alpha = .45f)
+    if (!line.isWordByWord || line.words.isEmpty()) {
+        Text(line.content, style = MaterialTheme.typography.headlineSmall, color = if (active) activeColor else inactiveColor, fontWeight = if (active) FontWeight.Bold else FontWeight.Normal)
+        return
+    }
+    val timed = buildAnnotatedString {
+        line.words.forEachIndexed { index, word ->
+            val start = word.absoluteStartTimeMs
+            val end = start + word.durationMs.coerceAtLeast(
+                (line.words.getOrNull(index + 1)?.absoluteStartTimeMs ?: start + 600L) - start
+            )
+            val color = when {
+                positionMs >= end -> activeColor
+                positionMs >= start -> activeColor.copy(alpha = .82f)
+                else -> inactiveColor
+            }
+            withStyle(SpanStyle(color = color, fontWeight = if (positionMs >= start) FontWeight.Bold else FontWeight.Normal)) { append(word.text) }
+        }
+    }
+    Text(timed, style = MaterialTheme.typography.headlineSmall)
 }
 
 @Composable private fun Artwork(song: SongItem, size: androidx.compose.ui.unit.Dp) = ArtworkImage(song.artworkLocation, song.title, Modifier.size(size))
