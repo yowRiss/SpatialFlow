@@ -43,7 +43,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -84,7 +83,7 @@ fun MiniPlayer(state: PlayerUiState, controller: PlaybackController, onExpand: (
     Surface(Modifier.fillMaxWidth().clickable(onClick = onExpand), tonalElevation = 10.dp) {
         Column(Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
             val duration = state.duration.coerceAtLeast(song.duration.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()).coerceAtLeast(1)
-            Slider(state.positionMs.coerceIn(0, duration.toLong()).toFloat(), { controller.dispatch(PlayerCommand.SeekTo(it.toLong())) }, valueRange = 0f..duration.toFloat())
+            WavyMusicSlider(state.positionMs.coerceIn(0, duration.toLong()).toFloat(), { controller.dispatch(PlayerCommand.SeekTo(it.toLong())) }, 0f..duration.toFloat(), state.isPlaying)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Artwork(song, 44.dp); Spacer(Modifier.width(12.dp))
                 SongText(song, Modifier.fillMaxWidth())
@@ -113,7 +112,7 @@ fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: Playback
                 Icon(if (isFavourite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, if (isFavourite) "Remove from favourites" else "Add to favourites", tint = if (isFavourite) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
             }
         }
-        Spacer(Modifier.height(16.dp)); Slider(state.positionMs.coerceIn(0, duration.toLong()).toFloat(), { controller.dispatch(PlayerCommand.SeekTo(it.toLong())) }, valueRange = 0f..duration.toFloat())
+        Spacer(Modifier.height(16.dp)); WavyMusicSlider(state.positionMs.coerceIn(0, duration.toLong()).toFloat(), { controller.dispatch(PlayerCommand.SeekTo(it.toLong())) }, 0f..duration.toFloat(), state.isPlaying)
         Row(Modifier.fillMaxWidth()) { Text(time(state.positionMs), Modifier.fillMaxWidth(), style = MaterialTheme.typography.labelSmall); Text(time(duration.toLong()), style = MaterialTheme.typography.labelSmall) }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
             IconButton({ controller.dispatch(PlayerCommand.SetShuffle(!state.isShuffleEnabled)) }) {
