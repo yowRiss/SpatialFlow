@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +24,8 @@ import java.io.File
 import java.nio.file.Files
 import javax.swing.JFileChooser
 import javax.swing.filechooser.FileNameExtensionFilter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /** JVM replacement for Android's TagEditorFragment. Unsupported files report a
  * write error rather than silently claiming success. */
@@ -34,6 +37,20 @@ fun DesktopTagEditor(song: SongItem?, onSaved: (String) -> Unit) {
     var album by remember(song.id) { mutableStateOf("") }
     var coverFile by remember(song.id) { mutableStateOf<File?>(null) }
     var message by remember(song.id) { mutableStateOf("") }
+    LaunchedEffect(song.path) {
+        val existing = withContext(Dispatchers.IO) {
+            runCatching {
+                AudioFileIO.read(File(song.path!!)).tagOrCreateAndSetDefault.let { tag ->
+                    ExistingTags(
+                        title = tag.getFirst(FieldKey.TITLE).ifBlank { song.title },
+                        artist = tag.getFirst(FieldKey.ARTIST).ifBlank { song.artist },
+                        album = tag.getFirst(FieldKey.ALBUM),
+                    )
+                }
+            }.getOrNull()
+        }
+        existing?.let { tags -> title = tags.title; artist = tags.artist; album = tags.album }
+    }
     Column(Modifier.fillMaxSize().padding(24.dp)) {
         Text("Edit tags", style = MaterialTheme.typography.headlineMedium)
         OutlinedTextField(title, { title = it }, Modifier.fillMaxWidth(), label = { Text("Title") })
@@ -67,3 +84,5 @@ fun DesktopTagEditor(song: SongItem?, onSaved: (String) -> Unit) {
         if (message.isNotBlank()) Text(message, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
+
+private data class ExistingTags(val title: String, val artist: String, val album: String)
