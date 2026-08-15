@@ -19,7 +19,8 @@ modules:
     buildsystem: simple
     build-commands:
       - install -d /app/libexec/spatialflow
-      - cp -a spatialflow/. /app/libexec/spatialflow/
+      - install -d /app/bin
+      - cp -a . /app/libexec/spatialflow/
       - ln -s /app/libexec/spatialflow/bin/spatialflow /app/bin/spatialflow
     sources:
       - type: dir

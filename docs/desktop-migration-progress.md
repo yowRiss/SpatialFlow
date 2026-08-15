@@ -331,7 +331,9 @@ Status: in progress.
 - [x] SQLDelight playlists, favourites, and history; desktop local/stream downloading;
   jaudiotagger metadata editing; GitHub release checking.
 - [x] Embedded YouTube Music account sign-in/session capture via JCEF.
-- [ ] Flatpak libVLC/JCEF native module packaging and a clean-sandbox end-to-end test.
+- [ ] Flatpak libVLC/JCEF native module packaging. The complete Compose image now
+  clean-builds and exports in a Freedesktop 25.08 sandbox; final runtime playback
+  still needs the pinned native libVLC module.
 - [x] Android-only home widgets and haptics are intentionally skipped/no-op on desktop.
 
 ### Verification log
@@ -414,3 +416,4 @@ Status: in progress.
 | 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m' -Dorg.gradle.parallel=false` | pass | Desktop metadata writes now run off the Compose UI thread and show an in-progress state. |
 | 2026-08-15 | temporary `flatpak-builder --show-manifest` | pass | The Flatpak manifest parses with the full Compose application image staged as a directory source. A clean runtime build is pending the pinned libVLC module. |
 | 2026-08-15 | GitHub Actions `Flatpak manifest` | pass | CI built and staged the Compose Desktop image, then validated the Flatpak manifest and its complete app-image source layout. |
+| 2026-08-15 | `flatpak-builder --user --force-clean …` | pass | A clean Freedesktop 25.08 build installs the staged image under `/app/libexec/spatialflow` and exports `com.codetrio.SpatialFlow`. Native libVLC remains intentionally absent. |

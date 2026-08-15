@@ -10,8 +10,9 @@ flatpak-builder --user --install-deps-from=flathub --force-clean build/flatpak \
   packaging/flatpak/com.codetrio.SpatialFlow.yml
 ```
 
-The manifest now installs the complete Compose app image under
-`/app/libexec/spatialflow`, preserving the launcher/JVM layout. It grants the
+The manifest receives the staged directory as its module working directory and
+installs the complete Compose app image under `/app/libexec/spatialflow`,
+preserving the launcher/JVM layout. It grants the
 window-system, PulseAudio, GPU, IPC, network, and read-only Music-directory
 access required by Compose Desktop and the embedded YouTube Music JCEF login.
 

@@ -36,3 +36,10 @@ jobs:
           flatpak-builder --show-manifest packaging/flatpak/com.codetrio.SpatialFlow.yml >/tmp/manifest.json
           grep -F '"type" : "dir"' /tmp/manifest.json
           grep -F '/app/libexec/spatialflow' /tmp/manifest.json
+      - name: Clean-build the Flatpak image
+        run: |
+          flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user -y flathub org.freedesktop.Platform//25.08 org.freedesktop.Sdk//25.08
+          flatpak-builder --user --force-clean --disable-rofiles-fuse \
+            --repo=build/flatpak-repo build/flatpak \
+            packaging/flatpak/com.codetrio.SpatialFlow.yml
