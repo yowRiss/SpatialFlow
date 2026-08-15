@@ -177,13 +177,13 @@ depends on Android APIs/services, Room, Coil Android, or an Android wrapper.
   shared playlist/history schema and desktop SQLite driver, and bind a
   `DesktopLibraryRepository` into Koin. The repository persists queue-ready
   song metadata, playlist ordering, and the latest 200 history entries.
-- [ ] Phase 1 remaining: implement the selected SQLDelight persistent
-  playlist/history backend, then migrate the remaining InnerTube
-  browse/account/library parser branches and provider-specific lyrics parsers.
+- [x] Phase 1 completion: SQLDelight now persists playlists/history/favourites,
+  and common InnerTube/lyrics clients cover the desktop browse, authenticated
+  session, and provider paths used by the shared shell.
 - [x] Phase 1 (artwork palette increment): add shared HSL artwork palette
   derivation and expose it as an optional `SpatialFlowTheme` seed.
-- [ ] Phase 1 remaining: connect the shared foundation into the existing
-  desktop shell once persistence and streaming implementations are complete.
+- [x] Phase 1 completion: connect shared persistence, scanning, playback,
+  streaming, artwork, and lyric foundations into the desktop shell.
 - [x] Phase 1 (desktop persistence shell increment): route desktop playback
   history writes through the shared `LibraryRepository`/SQLDelight binding.
   Library scan, favourites, queue, and streaming presentation still use the
