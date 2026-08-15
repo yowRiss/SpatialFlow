@@ -1,0 +1,38 @@
+name: Flatpak manifest
+
+on:
+  pull_request:
+    paths:
+      - 'composeApp/**'
+      - 'packaging/flatpak/**'
+      - '.github/workflows/flatpak-manifest.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'composeApp/**'
+      - 'packaging/flatpak/**'
+      - '.github/workflows/flatpak-manifest.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - name: Install Flatpak Builder
+        run: sudo apt-get update && sudo apt-get install -y flatpak-builder
+      - name: Build and stage Compose Desktop image
+        run: |
+          chmod +x gradlew packaging/flatpak/prepare-flatpak-input.sh
+          ./gradlew :composeApp:createDistributable --no-daemon
+          ./packaging/flatpak/prepare-flatpak-input.sh
+          test -x packaging/flatpak/spatialflow/bin/spatialflow
+      - name: Validate Flatpak manifest and staged source
+        run: |
+          flatpak-builder --show-manifest packaging/flatpak/com.codetrio.SpatialFlow.yml >/tmp/manifest.json
+          grep -F '"type" : "dir"' /tmp/manifest.json
+          grep -F '/app/libexec/spatialflow' /tmp/manifest.json

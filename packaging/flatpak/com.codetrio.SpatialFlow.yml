@@ -5,14 +5,22 @@ sdk: org.freedesktop.Sdk
 command: spatialflow
 finish-args:
   - --share=network
+  - --share=ipc
   - --socket=pulseaudio
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
   - --filesystem=xdg-music:ro
 modules:
-  # CI should replace this module with the output of createDistributable.
+  # `prepare-flatpak-input.sh` stages the Compose app image here after
+  # :composeApp:createDistributable. Keeping its layout intact is required for
+  # Compose's launcher to find its bundled JVM and libraries.
   - name: spatialflow
     buildsystem: simple
     build-commands:
-      - install -Dm755 spatialflow /app/bin/spatialflow
+      - install -d /app/libexec/spatialflow
+      - cp -a spatialflow/. /app/libexec/spatialflow/
+      - ln -s /app/libexec/spatialflow/bin/spatialflow /app/bin/spatialflow
     sources:
-      - type: file
+      - type: dir
         path: spatialflow

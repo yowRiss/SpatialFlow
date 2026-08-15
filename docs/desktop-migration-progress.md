@@ -309,6 +309,9 @@ Status: in progress.
   conversion into common code. Desktop enables the optional provider only when
   `SPATIALFLOW_APPLE_MUSIC_TOKEN` (or `-Dspatialflow.appleMusicToken`) supplies
   a renewable developer token; a token is never embedded in the binary.
+- [x] Flatpak Compose staging: install the complete generated application image
+  below `/app/libexec/spatialflow` (rather than only its launcher), and validate
+  that layout in GitHub Actions. Native libVLC remains separate work.
 - [ ] Flatpak libVLC module remains in the active Phase 2/Phase 3 queue.
 
 ## Phase 4 — feature-parity ledger
@@ -409,3 +412,4 @@ Status: in progress.
 | 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m' -Dorg.gradle.parallel=false` | pass | Desktop tag editing now preloads existing title, artist, and album metadata before a save. |
 | 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m' -Dorg.gradle.parallel=false` | pass | Official YouTube Music lyrics browse lookup and primary desktop provider fallback compile successfully. |
 | 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m' -Dorg.gradle.parallel=false` | pass | Desktop metadata writes now run off the Compose UI thread and show an in-progress state. |
+| 2026-08-15 | temporary `flatpak-builder --show-manifest` | pass | The Flatpak manifest parses with the full Compose application image staged as a directory source. A clean runtime build is pending the pinned libVLC module. |
