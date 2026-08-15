@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -105,7 +107,7 @@ fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: Playback
             Text("NOW PLAYING", Modifier.fillMaxWidth(), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
             IconButton(onActions) { Icon(Icons.Default.MoreVert, "More") }
         }
-        Spacer(Modifier.height(28.dp)); Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Artwork(song, 300.dp) }
+        Spacer(Modifier.height(28.dp)); PlayerArtworkPager(queue.ifEmpty { listOf(song) }, state.currentSongIndex, controller, Modifier.fillMaxWidth().height(300.dp))
         Spacer(Modifier.height(28.dp)); Row(verticalAlignment = Alignment.CenterVertically) {
             SongText(song, Modifier.fillMaxWidth())
             IconButton(onToggleFavourite) {
@@ -129,6 +131,22 @@ fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: Playback
             Text("${queue.size} tracks queued", style = MaterialTheme.typography.labelMedium)
             IconButton(onSleepTimer) { Icon(Icons.Default.Timer, "Sleep timer") }
         }
+    }
+}
+
+/** Shared Compose port of Android's ArtworkPager: swipe artwork to select the
+ * corresponding queue item while external playback changes keep it in sync. */
+@Composable
+private fun PlayerArtworkPager(queue: List<SongItem>, currentIndex: Int, controller: PlaybackController, modifier: Modifier = Modifier) {
+    val pager = rememberPagerState(initialPage = currentIndex.coerceIn(0, queue.lastIndex.coerceAtLeast(0)), pageCount = { queue.size.coerceAtLeast(1) })
+    LaunchedEffect(currentIndex, queue.size) {
+        if (currentIndex in queue.indices && pager.currentPage != currentIndex) pager.animateScrollToPage(currentIndex)
+    }
+    LaunchedEffect(pager.currentPage, pager.isScrollInProgress) {
+        if (!pager.isScrollInProgress && pager.currentPage != currentIndex) controller.dispatch(PlayerCommand.PlayAt(pager.currentPage))
+    }
+    HorizontalPager(state = pager, modifier = modifier) { page ->
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Artwork(queue.getOrElse(page) { queue.first() }, 300.dp) }
     }
 }
 
