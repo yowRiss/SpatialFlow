@@ -51,6 +51,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -155,6 +158,8 @@ private fun PlayerArtworkPager(queue: List<SongItem>, currentIndex: Int, control
  * the same shared commands. */
 @Composable
 fun SleepTimerDialog(controller: PlaybackController, state: PlayerUiState, onDismiss: () -> Unit) {
+    var clockMs by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(state.sleepTimerEndsAtMs) { while (state.sleepTimerEndsAtMs > clockMs) { kotlinx.coroutines.delay(1_000); clockMs = System.currentTimeMillis() } }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Sleep timer") },
@@ -162,7 +167,7 @@ fun SleepTimerDialog(controller: PlaybackController, state: PlayerUiState, onDis
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (state.sleepTimerMode != SleepTimerMode.OFF) Text(
                     when (state.sleepTimerMode) {
-                        SleepTimerMode.CUSTOM -> "Timer is active."
+                        SleepTimerMode.CUSTOM -> "${((state.sleepTimerEndsAtMs - clockMs).coerceAtLeast(0) / 60_000)} minutes remaining."
                         SleepTimerMode.END_OF_SONG -> "Will stop at the end of this song."
                         SleepTimerMode.END_OF_QUEUE -> "Will stop at the end of the queue."
                         SleepTimerMode.OFF -> ""

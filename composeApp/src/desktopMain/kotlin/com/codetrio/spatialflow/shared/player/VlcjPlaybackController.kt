@@ -226,11 +226,12 @@ class VlcjPlaybackController : PlaybackController {
 
     private fun setSleepTimer(mode: SleepTimerMode, minutes: Int?) {
         sleepTimerJob?.cancel(); sleepTimerJob = null; sleepMode = mode
-        mutableState.value = mutableState.value.copy(sleepTimerMode = mode)
+        val endsAt = if (mode == SleepTimerMode.CUSTOM && (minutes ?: 0) > 0) System.currentTimeMillis() + minutes!! * 60_000L else 0L
+        mutableState.value = mutableState.value.copy(sleepTimerMode = mode, sleepTimerEndsAtMs = endsAt)
         if (mode == SleepTimerMode.CUSTOM && (minutes ?: 0) > 0) {
             sleepTimerJob = playbackScope.launch {
                 delay(minutes!! * 60_000L)
-                synchronized(this@VlcjPlaybackController) { player?.controls()?.setPause(true); sleepMode = SleepTimerMode.OFF; mutableState.value = mutableState.value.copy(isPlaying = false, sleepTimerMode = SleepTimerMode.OFF) }
+                synchronized(this@VlcjPlaybackController) { player?.controls()?.setPause(true); sleepMode = SleepTimerMode.OFF; mutableState.value = mutableState.value.copy(isPlaying = false, sleepTimerMode = SleepTimerMode.OFF, sleepTimerEndsAtMs = 0L) }
             }
         }
     }
