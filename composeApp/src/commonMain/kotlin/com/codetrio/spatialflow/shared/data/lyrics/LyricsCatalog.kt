@@ -11,14 +11,17 @@ class NetworkLyricsCatalog(
     http: HttpClient,
     syncLrcBaseUrl: String,
     paxsenixBaseUrl: String,
+    appleMusicConfig: AppleMusicLyricsConfig? = null,
     private val scorer: LyricsConfidenceScorer = LyricsConfidenceScorer(),
 ) : LyricsCatalog {
     private val lrcLib = LrcLibClient(http)
     private val syncLrc = SyncLrcClient(http, syncLrcBaseUrl)
     private val paxsenix = PaxsenixLyricsProvider(PaxsenixClient(http, paxsenixBaseUrl))
+    private val appleMusic = appleMusicConfig?.let { AppleMusicLyricsProvider(PaxsenixClient(http, paxsenixBaseUrl), it) }
 
     override suspend fun fetch(track: TrackMetadata): Result<LyricsResult> = runCatching {
         val candidates = listOfNotNull(
+            appleMusic?.fetch(track)?.getOrNull(),
             syncLrc.getLyrics(track).getOrNull()?.toLyricsResult(),
             lrcLib.getLyrics(track).getOrNull()?.toLyricsResult(),
             paxsenix.fetch(track).getOrNull(),

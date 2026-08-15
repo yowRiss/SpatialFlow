@@ -305,10 +305,11 @@ Status: in progress.
   through queue/history/player adapters. A bounded desktop sampler now feeds
   the active local or streamed cover's seed into the shared dynamic theme,
   with network connect/read timeouts for remote artwork.
-- [ ] Flatpak libVLC module and provider-specific Apple Music parser parity
-  remain in the active Phase 2/Phase 3 queue. Apple Music requires a renewable
-  developer token and is intentionally not implemented with Android's embedded
-  expiring token.
+- [x] Apple Music lyrics: port AMP catalog matching and TTML-to-enhanced-LRC
+  conversion into common code. Desktop enables the optional provider only when
+  `SPATIALFLOW_APPLE_MUSIC_TOKEN` (or `-Dspatialflow.appleMusicToken`) supplies
+  a renewable developer token; a token is never embedded in the binary.
+- [ ] Flatpak libVLC module remains in the active Phase 2/Phase 3 queue.
 
 ### Verification log
 
@@ -383,3 +384,4 @@ Status: in progress.
 | 2026-08-14 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dorg.gradle.parallel=false` | pass | Desktop song actions can open a local track in the system's external media player. |
 | 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m -Dorg.gradle.parallel=false` | pass | Shared Android-equivalent full-player artwork pager compiles with playback/queue synchronization. |
 | 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m' -Dorg.gradle.parallel=false` | pass | Custom sleep timers now retain their absolute end time and the player dialog renders a live remaining-time countdown. |
+| 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m' -Dorg.gradle.parallel=false` | pass | Configured Apple Music AMP lookup, matching, and TTML-to-enhanced-LRC conversion compile successfully for desktop. |

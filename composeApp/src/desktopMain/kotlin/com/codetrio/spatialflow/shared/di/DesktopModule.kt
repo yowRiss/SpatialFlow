@@ -1,6 +1,9 @@
 package com.codetrio.spatialflow.shared.di
 
 import com.codetrio.spatialflow.shared.network.createPlatformHttpClient
+import com.codetrio.spatialflow.shared.data.lyrics.AppleMusicLyricsConfig
+import com.codetrio.spatialflow.shared.data.lyrics.LyricsCatalog
+import com.codetrio.spatialflow.shared.data.lyrics.NetworkLyricsCatalog
 import com.codetrio.spatialflow.shared.account.GoogleAuthClient
 import com.codetrio.spatialflow.shared.account.createGoogleAuthClient
 import com.codetrio.spatialflow.shared.account.DesktopYouTubeSession
@@ -39,4 +42,16 @@ val desktopModule: Module = module {
     single { DesktopYouTubeSession(get()) }
     single<UpdateInstaller> { createUpdateInstaller() }
     single { createPlatformHttpClient() }
+    single<LyricsCatalog> {
+        val token = System.getProperty("spatialflow.appleMusicToken")
+            ?: System.getenv("SPATIALFLOW_APPLE_MUSIC_TOKEN")
+        NetworkLyricsCatalog(
+            http = get(),
+            syncLrcBaseUrl = "https://api.synclrc.dev",
+            paxsenixBaseUrl = "https://lyrics.paxsenix.org",
+            appleMusicConfig = token?.takeIf(String::isNotBlank)?.let {
+                AppleMusicLyricsConfig(it, System.getProperty("spatialflow.appleMusicStorefront") ?: "us")
+            },
+        )
+    }
 }

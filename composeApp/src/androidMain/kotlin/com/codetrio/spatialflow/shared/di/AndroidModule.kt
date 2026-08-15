@@ -2,6 +2,8 @@ package com.codetrio.spatialflow.shared.di
 
 import android.content.SharedPreferences
 import com.codetrio.spatialflow.shared.network.createPlatformHttpClient
+import com.codetrio.spatialflow.shared.data.lyrics.LyricsCatalog
+import com.codetrio.spatialflow.shared.data.lyrics.NetworkLyricsCatalog
 import com.codetrio.spatialflow.shared.account.GoogleAuthClient
 import com.codetrio.spatialflow.shared.account.createGoogleAuthClient
 import com.codetrio.spatialflow.shared.library.AndroidLocalMusicLibrary
@@ -28,4 +30,11 @@ fun androidModule(context: android.content.Context, preferences: SharedPreferenc
     single<GoogleAuthClient> { createGoogleAuthClient() }
     single<UpdateInstaller> { createUpdateInstaller() }
     single { createPlatformHttpClient() }
+    single<LyricsCatalog> {
+        NetworkLyricsCatalog(
+            http = get(),
+            syncLrcBaseUrl = "https://api.synclrc.dev",
+            paxsenixBaseUrl = "https://lyrics.paxsenix.org",
+        )
+    }
 }
