@@ -13,6 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -25,6 +26,7 @@ import java.nio.file.Files
 import javax.swing.JFileChooser
 import javax.swing.filechooser.FileNameExtensionFilter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** JVM replacement for Android's TagEditorFragment. Unsupported files report a
@@ -37,6 +39,7 @@ fun DesktopTagEditor(song: SongItem?, onSaved: (String) -> Unit) {
     var album by remember(song.id) { mutableStateOf("") }
     var coverFile by remember(song.id) { mutableStateOf<File?>(null) }
     var message by remember(song.id) { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
     LaunchedEffect(song.path) {
         val existing = withContext(Dispatchers.IO) {
             runCatching {
@@ -66,20 +69,25 @@ fun DesktopTagEditor(song: SongItem?, onSaved: (String) -> Unit) {
         }) { Text(if (coverFile == null) "Choose cover art" else "Replace cover art") }
         coverFile?.let { Text(it.name, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         Button(onClick = {
-            message = runCatching {
-                val audioFile = AudioFileIO.read(File(song.path!!))
-                val tag = audioFile.tagOrCreateAndSetDefault
-                tag.setField(FieldKey.TITLE, title); tag.setField(FieldKey.ARTIST, artist); tag.setField(FieldKey.ALBUM, album)
-                coverFile?.let { cover ->
-                    val artwork = StandardArtwork().apply {
-                        binaryData = Files.readAllBytes(cover.toPath())
-                        check(setImageFromData()) { "The selected file is not a valid image." }
-                    }
-                    tag.setField(artwork)
+            scope.launch {
+                message = "Saving…"
+                message = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val audioFile = AudioFileIO.read(File(song.path!!))
+                        val tag = audioFile.tagOrCreateAndSetDefault
+                        tag.setField(FieldKey.TITLE, title); tag.setField(FieldKey.ARTIST, artist); tag.setField(FieldKey.ALBUM, album)
+                        coverFile?.let { cover ->
+                            val artwork = StandardArtwork().apply {
+                                binaryData = Files.readAllBytes(cover.toPath())
+                                check(setImageFromData()) { "The selected file is not a valid image." }
+                            }
+                            tag.setField(artwork)
+                        }
+                        AudioFileIO.write(audioFile); "Saved"
+                    }.getOrElse { "Could not save tags: ${it.message}" }
                 }
-                AudioFileIO.write(audioFile); "Saved" 
-            }.getOrElse { "Could not save tags: ${it.message}" }
-            onSaved(message)
+                onSaved(message)
+            }
         }) { Text("Save tags") }
         if (message.isNotBlank()) Text(message, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
