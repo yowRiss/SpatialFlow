@@ -238,6 +238,9 @@ Status: in progress.
   explicit, and apply the selected light/dark/system theme immediately and
   after setup. The packaged JRE now includes `java.sql`, preventing the
   SQLDelight `DriverManager` crash that previously occurred on finishing setup.
+- [x] Account sidebar reliability: defer first-run JCEF/Chromium provisioning
+  until the user explicitly opens embedded YouTube Music sign-in, so simply
+  navigating to the Account sidebar never blocks or destabilizes the app.
 - [x] Update hand-off: add `UpdateInstaller` expect/actuals. Desktop Home
   exposes an in-app GitHub Releases check and opens a verified available-release
   URL in the system browser; installation is delegated to the package manager.
