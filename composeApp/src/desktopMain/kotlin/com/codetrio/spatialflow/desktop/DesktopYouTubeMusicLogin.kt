@@ -26,7 +26,7 @@ import java.io.File
 import javax.swing.SwingUtilities
 
 @Composable
-fun DesktopYouTubeMusicLogin(session: DesktopYouTubeSession) {
+fun DesktopYouTubeMusicLogin(session: DesktopYouTubeSession, onClose: (() -> Unit)? = null) {
     var status by remember { mutableStateOf(if (session.isLoggedIn()) "Connected to YouTube Music." else "Sign in in the embedded YouTube Music window.") }
     val browser = remember { mutableStateOf<CefBrowser?>(null) }
     Column(Modifier.fillMaxSize().padding(24.dp)) {
@@ -56,6 +56,7 @@ fun DesktopYouTubeMusicLogin(session: DesktopYouTubeSession) {
             browser.value?.loadURL("https://accounts.google.com/ServiceLogin?service=youtube&passive=true&continue=https://music.youtube.com/")
             status = "Reloaded YouTube Music sign-in."
         }) { Text("Reload sign-in") }
+        onClose?.let { close -> TextButton(onClick = close) { Text("Close") } }
         if (session.isLoggedIn()) TextButton(onClick = {
             session.clear()
             browser.value?.loadURL("https://accounts.google.com/ServiceLogin?service=youtube&passive=true&continue=https://music.youtube.com/")

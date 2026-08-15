@@ -63,9 +63,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 
 /** Shared nine-step onboarding, preserving the Android information architecture. */
 @Composable
-fun OnboardingScreen(platform: OnboardingPlatform, onComplete: () -> Unit) {
+fun OnboardingScreen(
+    platform: OnboardingPlatform,
+    accountConnected: Boolean = false,
+    onConnectAccount: () -> Unit = {},
+    onThemeModeChanged: (ThemeMode) -> Unit = {},
+    onComplete: () -> Unit,
+) {
     val scope = rememberCoroutineScope()
     var state by remember { mutableStateOf(OnboardingUiState()) }
+    var completionError by remember { mutableStateOf<String?>(null) }
     fun updatePreferences(transform: (OnboardingPreferences) -> OnboardingPreferences) {
         state = state.copy(preferences = transform(state.preferences))
     }
@@ -82,11 +89,14 @@ fun OnboardingScreen(platform: OnboardingPlatform, onComplete: () -> Unit) {
                     OnboardingStep.WELCOME -> IntroPage("Welcome to SpatialFlow", "Your music, beautifully in motion.", Icons.Default.Home)
                     OnboardingStep.ECOSYSTEM -> IntroPage("One music ecosystem", "Local files, playlists, streaming, and lyrics in one queue.", Icons.Default.LibraryMusic)
                     OnboardingStep.FEATURES -> FeaturesPage()
-                    OnboardingStep.ACCOUNT -> AccountPage(state.isSignedIn, { state = state.copy(isSignedIn = true) })
+                    OnboardingStep.ACCOUNT -> AccountPage(accountConnected, onConnectAccount)
                     OnboardingStep.PERMISSIONS -> PermissionsPage(state) {
                         scope.launch { state = state.copy(permissions = platform.requestPermissions()) }
                     }
-                    OnboardingStep.THEME -> ThemePage(state.preferences.themeMode) { mode -> updatePreferences { it.copy(themeMode = mode) } }
+                    OnboardingStep.THEME -> ThemePage(state.preferences.themeMode) { mode ->
+                        updatePreferences { it.copy(themeMode = mode) }
+                        onThemeModeChanged(mode)
+                    }
                     OnboardingStep.NAVIGATION -> NavigationPage(state.preferences) { updatePreferences(it) }
                     OnboardingStep.PREFERENCES -> PreferencesPage(state.preferences.hapticsStrength, { strength ->
                         updatePreferences { it.copy(hapticsStrength = strength) }
@@ -101,12 +111,18 @@ fun OnboardingScreen(platform: OnboardingPlatform, onComplete: () -> Unit) {
                 Icon(Icons.Default.ArrowBack, "Back")
             }
             if (state.step.isLast) Button(onClick = {
-                scope.launch { platform.persist(state.preferences); onComplete() }
+                scope.launch {
+                    completionError = null
+                    runCatching { platform.persist(state.preferences) }
+                        .onSuccess { onComplete() }
+                        .onFailure { completionError = it.message ?: "Could not save setup preferences." }
+                }
             }) { Text("Finish"); Icon(Icons.Default.Check, null) }
             else Button(enabled = state.canAdvance, onClick = { state = state.copy(step = state.step.next()) }) {
                 Text("Continue"); Icon(Icons.Default.ArrowForward, null)
             }
         }
+        completionError?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp)) }
     }
 }
 
@@ -134,7 +150,13 @@ fun OnboardingScreen(platform: OnboardingPlatform, onComplete: () -> Unit) {
     PermissionItem(Icons.Default.LibraryMusic, "Music library", state.permissions.audio)
     PermissionItem(Icons.Default.Notifications, "Now playing notifications", state.permissions.notifications)
     PermissionItem(Icons.Default.Mic, "Microphone", state.permissions.microphone)
-    Button(onClick = request) { Text("Grant access") }
+    Text(
+        if (state.permissions.requiredForSetup) "Desktop access is ready. Your music folder is chosen from Library."
+        else "Desktop does not show Android permission dialogs. Grant access to continue.",
+        textAlign = TextAlign.Center,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Button(onClick = request) { Text(if (state.permissions.requiredForSetup) "Access granted" else "Grant access") }
 }
 
 @Composable private fun PermissionItem(icon: ImageVector, text: String, granted: Boolean) = Card { Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {

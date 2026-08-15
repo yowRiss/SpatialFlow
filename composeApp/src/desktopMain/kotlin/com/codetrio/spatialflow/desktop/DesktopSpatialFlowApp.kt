@@ -65,6 +65,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -73,6 +74,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.codetrio.spatialflow.shared.ui.SpatialFlowTheme
+import com.codetrio.spatialflow.shared.onboarding.ThemeMode
 import com.codetrio.spatialflow.shared.library.LibraryRepository
 import com.codetrio.spatialflow.shared.library.LocalMusicLibrary
 import com.codetrio.spatialflow.shared.library.DesktopArtworkCache
@@ -534,7 +536,13 @@ private fun Int.floorMod(modulus: Int) = ((this % modulus) + modulus) % modulus
 fun DesktopSpatialFlowApp() {
     val viewModel = remember { DesktopPlayerViewModel() }
     val settings by viewModel.settings().uiState.collectAsState()
+    val darkTheme = when (viewModel.settingsStore().settings.value.themeMode) {
+        ThemeMode.DARK -> true
+        ThemeMode.LIGHT -> false
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    }
     SpatialFlowTheme(
+        darkTheme = darkTheme,
         amoledBlack = settings.amoledBlack,
         usePlatformDynamicColor = settings.dynamicAlbumTheme,
         artworkSeed = if (settings.dynamicAlbumTheme) viewModel.artworkSeed else null,

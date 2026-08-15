@@ -233,6 +233,11 @@ Status: in progress.
   entry, hicolor application icon, and AppStream metadata so it appears in
   Fedora Discover/application launchers. Flatpak still needs its own libVLC
   module.
+- [x] Desktop onboarding reliability: wire the optional account step to the
+  embedded YouTube Music login window, make desktop access acknowledgement
+  explicit, and apply the selected light/dark/system theme immediately and
+  after setup. The packaged JRE now includes `java.sql`, preventing the
+  SQLDelight `DriverManager` crash that previously occurred on finishing setup.
 - [x] Update hand-off: add `UpdateInstaller` expect/actuals. Desktop Home
   exposes an in-app GitHub Releases check and opens a verified available-release
   URL in the system browser; installation is delegated to the package manager.

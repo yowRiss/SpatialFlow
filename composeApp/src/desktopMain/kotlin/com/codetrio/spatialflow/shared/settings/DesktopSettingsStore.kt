@@ -1,5 +1,6 @@
 package com.codetrio.spatialflow.shared.settings
 
+import com.codetrio.spatialflow.shared.onboarding.ThemeMode
 import java.util.prefs.Preferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,6 +11,7 @@ class DesktopSettingsStore(private val preferences: Preferences = Preferences.us
 
     override fun update(transform: SpatialFlowSettings.() -> SpatialFlowSettings) {
         val next = mutableSettings.value.transform()
+        preferences.put("theme_mode", next.themeMode.name)
         preferences.putBoolean("amoled_black", next.amoledBlack)
         preferences.putBoolean("dynamic_album_theme", next.dynamicAlbumTheme)
         preferences.putBoolean("normalize_volume", next.normalizeVolume)
@@ -25,6 +27,9 @@ class DesktopSettingsStore(private val preferences: Preferences = Preferences.us
     }
 
     private fun read() = SpatialFlowSettings(
+        themeMode = preferences.get("theme_mode", ThemeMode.SYSTEM.name).let { saved ->
+            ThemeMode.entries.firstOrNull { it.name.equals(saved, ignoreCase = true) } ?: ThemeMode.SYSTEM
+        },
         amoledBlack = preferences.getBoolean("amoled_black", false),
         dynamicAlbumTheme = preferences.getBoolean("dynamic_album_theme", true),
         normalizeVolume = preferences.getBoolean("normalize_volume", true),

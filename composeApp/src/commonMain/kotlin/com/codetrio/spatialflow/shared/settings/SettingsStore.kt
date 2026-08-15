@@ -1,9 +1,11 @@
 package com.codetrio.spatialflow.shared.settings
 
+import com.codetrio.spatialflow.shared.onboarding.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 data class SpatialFlowSettings(
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val amoledBlack: Boolean = false,
     val dynamicAlbumTheme: Boolean = true,
     val normalizeVolume: Boolean = true,

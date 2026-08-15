@@ -91,6 +91,9 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Rpm, TargetFormat.Msi)
+            // SQLDelight's JDBC SQLite driver loads java.sql.DriverManager at
+            // startup. Compose's default jlink image omits java.sql.
+            modules("java.sql")
             packageName = "spatialflow"
             // CI builds must sort above an already-installed RPM. Local builds
             // retain the base version while GitHub Actions uses its run number.
