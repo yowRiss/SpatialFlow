@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.codetrio.SpatialFlow</id>
+  <name>SpatialFlow</name>
+  <summary>Local and streaming music player</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <description>
+    <p>SpatialFlow is a music player for local libraries and YouTube Music streaming, with synchronized lyrics, playlists, and audio effects.</p>
+  </description>
+  <launchable type="desktop-id">com.codetrio.SpatialFlow.desktop</launchable>
+  <provides>
+    <binary>spatialflow</binary>
+  </provides>
+  <categories>
+    <category>AudioVideo</category>
+    <category>Audio</category>
+    <category>Player</category>
+  </categories>
+  <url type="homepage">https://github.com/yowRiss/SpatialFlow</url>
+  <releases>
+    <release version="1.8.0" date="2026-08-15"/>
+  </releases>
+</component>

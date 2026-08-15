@@ -1,4 +1,5 @@
 Name:           spatialflow
+%global debug_package %{nil}
 Version:        %{!?version:1.8.0}%{?version:}
 Release:        %{!?release:1}%{?release:}
 Summary:        SpatialFlow desktop music player
@@ -6,6 +7,8 @@ Summary:        SpatialFlow desktop music player
 License:        GPL-3.0-or-later
 URL:            https://github.com/yowRiss/SpatialFlow
 Source0:        spatialflow-app.tar.gz
+Source1:        com.codetrio.SpatialFlow.desktop
+Source2:        com.codetrio.SpatialFlow.metainfo.xml
 BuildArch:      x86_64
 
 # The desktop player uses vlcj, which discovers Fedora's libVLC runtime through
@@ -27,10 +30,17 @@ install -d %{buildroot}%{_libexecdir}/spatialflow
 cp -a spatialflow/. %{buildroot}%{_libexecdir}/spatialflow/
 install -d %{buildroot}%{_bindir}
 ln -s %{_libexecdir}/spatialflow/bin/spatialflow %{buildroot}%{_bindir}/spatialflow
+install -Dm644 %{SOURCE1} %{buildroot}%{_datadir}/applications/com.codetrio.SpatialFlow.desktop
+install -Dm644 %{buildroot}%{_libexecdir}/spatialflow/lib/spatialflow.png \
+  %{buildroot}%{_datadir}/icons/hicolor/512x512/apps/com.codetrio.SpatialFlow.png
+install -Dm644 %{SOURCE2} %{buildroot}%{_datadir}/metainfo/com.codetrio.SpatialFlow.metainfo.xml
 
 %files
 %{_bindir}/spatialflow
 %{_libexecdir}/spatialflow
+%{_datadir}/applications/com.codetrio.SpatialFlow.desktop
+%{_datadir}/icons/hicolor/512x512/apps/com.codetrio.SpatialFlow.png
+%{_datadir}/metainfo/com.codetrio.SpatialFlow.metainfo.xml
 
 %changelog
 * Thu Aug 14 2026 SpatialFlow maintainers <maintainers@spatialflow.app> - %{version}-%{release}

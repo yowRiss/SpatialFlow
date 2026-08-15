@@ -229,7 +229,10 @@ Status: in progress.
   releases the outgoing native player and commits the next shared queue state.
 - [x] Fedora desktop distribution: package the Compose app image through a
   controlled RPM spec which declares `vlc-libs`, so DNF installs the native
-  libVLC runtime required by `vlcj`. Flatpak still needs its own libVLC module.
+  libVLC runtime required by `vlcj`. The RPM now also installs an XDG desktop
+  entry, hicolor application icon, and AppStream metadata so it appears in
+  Fedora Discover/application launchers. Flatpak still needs its own libVLC
+  module.
 - [x] Update hand-off: add `UpdateInstaller` expect/actuals. Desktop Home
   exposes an in-app GitHub Releases check and opens a verified available-release
   URL in the system browser; installation is delegated to the package manager.

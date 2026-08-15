@@ -65,6 +65,8 @@ jobs:
           ./gradlew :composeApp:compileKotlinDesktop :composeApp:createDistributable
           mkdir -p build/rpm/SOURCES
           tar -C composeApp/build/compose/binaries/main/app -czf build/rpm/SOURCES/spatialflow-app.tar.gz spatialflow
+          cp packaging/rpm/com.codetrio.SpatialFlow.desktop build/rpm/SOURCES/
+          cp packaging/rpm/com.codetrio.SpatialFlow.metainfo.xml build/rpm/SOURCES/
           rpmbuild -bb packaging/rpm/spatialflow.spec \
             --define "_topdir $PWD/build/rpm" \
             --define "version $SPATIALFLOW_VERSION" \

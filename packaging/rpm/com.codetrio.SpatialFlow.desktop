@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SpatialFlow
+Comment=Local and streaming music player
+Exec=spatialflow %U
+Icon=com.codetrio.SpatialFlow
+Terminal=false
+Categories=AudioVideo;Audio;Player;
+StartupNotify=true
+MimeType=audio/mpeg;audio/flac;audio/x-wav;audio/aac;
