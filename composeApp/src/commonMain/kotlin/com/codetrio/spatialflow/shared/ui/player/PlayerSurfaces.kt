@@ -154,12 +154,20 @@ private fun PlayerArtworkPager(queue: List<SongItem>, currentIndex: Int, control
  * owns countdown and end-of-playback behavior; this surface only dispatches
  * the same shared commands. */
 @Composable
-fun SleepTimerDialog(controller: PlaybackController, onDismiss: () -> Unit) {
+fun SleepTimerDialog(controller: PlaybackController, state: PlayerUiState, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Sleep timer") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (state.sleepTimerMode != SleepTimerMode.OFF) Text(
+                    when (state.sleepTimerMode) {
+                        SleepTimerMode.CUSTOM -> "Timer is active."
+                        SleepTimerMode.END_OF_SONG -> "Will stop at the end of this song."
+                        SleepTimerMode.END_OF_QUEUE -> "Will stop at the end of the queue."
+                        SleepTimerMode.OFF -> ""
+                    }, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold
+                )
                 Text("Stop playback after a selected time or when playback reaches its end.")
                 listOf(15, 30, 45, 60, 90, 120).forEach { minutes ->
                     TextButton(onClick = {

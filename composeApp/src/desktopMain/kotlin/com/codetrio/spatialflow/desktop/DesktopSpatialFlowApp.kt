@@ -587,7 +587,7 @@ fun DesktopSpatialFlowApp() {
         DesktopPlayerSurface.None -> Unit
     }
     viewModel.playerState().currentSong?.takeIf { showSongActions }?.let { song -> SongActionsDialog(song, viewModel.repository(), { viewModel.controller().dispatch(PlayerCommand.Next) }, { showSongActions = false }, onDownload = if (song.path?.startsWith("http") == true) ({ viewModel.download(song) }) else null, onOpenExternal = if (song.path?.let(::File)?.isFile == true) ({ viewModel.openExternally(song) }) else null, onShare = { viewModel.copyShareLink(song) }, onDeleteLocal = if (song.path?.let(::File)?.isFile == true) ({ viewModel.deleteLocal(song) }) else null) }
-    if (showSleepTimer) SleepTimerDialog(viewModel.controller()) { showSleepTimer = false }
+    if (showSleepTimer) SleepTimerDialog(viewModel.controller(), viewModel.playerState()) { showSleepTimer = false }
     }
 }
 
