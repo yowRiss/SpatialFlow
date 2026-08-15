@@ -213,6 +213,7 @@ class VlcjPlaybackController : PlaybackController {
     private fun crossfadeTargetIndex(): Int? {
         val current = mutableState.value.currentSongIndex
         return when {
+            mutableState.value.isShuffleEnabled && queue.size > 1 -> nextIndex()
             current < queue.lastIndex -> current + 1
             mutableState.value.repeatMode == RepeatMode.ALL -> 0
             else -> null
