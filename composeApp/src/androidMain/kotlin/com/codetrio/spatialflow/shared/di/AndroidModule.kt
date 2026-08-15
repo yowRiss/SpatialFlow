@@ -35,6 +35,7 @@ fun androidModule(context: android.content.Context, preferences: SharedPreferenc
             http = get(),
             syncLrcBaseUrl = "https://api.synclrc.dev",
             paxsenixBaseUrl = "https://lyrics.paxsenix.org",
+            innerTube = get(),
         )
     }
 }

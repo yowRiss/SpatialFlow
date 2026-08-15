@@ -266,7 +266,7 @@ Status: in progress.
   artwork-safe fallback surface.
 - [x] Queue: add the shared desktop queue drawer and play-at queue actions.
 - [x] Lyrics: add the shared karaoke line surface; provider fetching and current
-  track binding now evaluates SyncLRC, LRCLIB, and Paxsenix Musixmatch/Spotify/YouTube
+  track binding now evaluates official YouTube Music, SyncLRC, LRCLIB, and Paxsenix Musixmatch/Spotify/YouTube
   candidates for the active player song, with confidence scoring, timed
   LRC/karaoke parsing, and a plain-lyrics fallback. Desktop local tracks first
   read embedded lyrics via jaudiotagger.
@@ -387,3 +387,4 @@ Status: in progress.
 | 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m' -Dorg.gradle.parallel=false` | pass | Configured Apple Music AMP lookup, matching, and TTML-to-enhanced-LRC conversion compile successfully for desktop. |
 | 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m' -Dorg.gradle.parallel=false` | pass | Crossfade now selects the same shuffled successor as normal queue playback. |
 | 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m' -Dorg.gradle.parallel=false` | pass | Desktop tag editing now preloads existing title, artist, and album metadata before a save. |
+| 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m' -Dorg.gradle.parallel=false` | pass | Official YouTube Music lyrics browse lookup and primary desktop provider fallback compile successfully. |

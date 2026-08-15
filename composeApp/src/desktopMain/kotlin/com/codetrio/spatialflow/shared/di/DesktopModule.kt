@@ -49,6 +49,7 @@ val desktopModule: Module = module {
             http = get(),
             syncLrcBaseUrl = "https://api.synclrc.dev",
             paxsenixBaseUrl = "https://lyrics.paxsenix.org",
+            innerTube = get(),
             appleMusicConfig = token?.takeIf(String::isNotBlank)?.let {
                 AppleMusicLyricsConfig(it, System.getProperty("spatialflow.appleMusicStorefront") ?: "us")
             },

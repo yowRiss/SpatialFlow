@@ -10,6 +10,15 @@ import kotlinx.serialization.json.jsonPrimitive
 
 /** Common JSON parser for the stable InnerTube search/player response branches. */
 object InnerTubeParser {
+    fun findLyricsBrowseId(json: JsonObject): String? = findMatchingString(json, "browseId") { it.startsWith("MPLYt") }
+
+    fun parseLyrics(json: JsonObject): String? {
+        val shelf = findObject(json, "musicDescriptionShelfRenderer") ?: return null
+        val description = shelf["description"]?.jsonObjectOrNull() ?: return null
+        return description["runs"]?.jsonArray?.joinToString("") { it.path("text")?.string().orEmpty() }
+            ?.takeIf(String::isNotBlank)
+            ?: description["simpleText"]?.string()?.takeIf(String::isNotBlank)
+    }
     fun parseSuggestions(json: JsonObject): List<String> = json.path("contents.0.searchSuggestionsSectionRenderer.contents")?.jsonArray
         ?.mapNotNull { it.path("searchSuggestionRenderer.suggestion.runs.0.text")?.string() }.orEmpty()
 
@@ -95,6 +104,25 @@ object InnerTubeParser {
     }
 
     private fun durationToMs(value: String?): Long = value?.split(':')?.fold(0L) { total, part -> total * 60 + (part.toLongOrNull() ?: 0) }?.times(1_000) ?: 0
+
+    private fun findString(element: JsonElement, name: String): String? = when (element) {
+        is JsonObject -> element[name]?.string() ?: element.values.firstNotNullOfOrNull { findString(it, name) }
+        is JsonArray -> element.firstNotNullOfOrNull { findString(it, name) }
+        else -> null
+    }
+
+    private fun findMatchingString(element: JsonElement, name: String, matches: (String) -> Boolean): String? = when (element) {
+        is JsonObject -> element[name]?.string()?.takeIf(matches)
+            ?: element.values.firstNotNullOfOrNull { findMatchingString(it, name, matches) }
+        is JsonArray -> element.firstNotNullOfOrNull { findMatchingString(it, name, matches) }
+        else -> null
+    }
+
+    private fun findObject(element: JsonElement, name: String): JsonObject? = when (element) {
+        is JsonObject -> element[name]?.jsonObjectOrNull() ?: element.values.firstNotNullOfOrNull { findObject(it, name) }
+        is JsonArray -> element.firstNotNullOfOrNull { findObject(it, name) }
+        else -> null
+    }
 }
 
 private fun JsonElement?.jsonObjectOrNull(): JsonObject? = this as? JsonObject

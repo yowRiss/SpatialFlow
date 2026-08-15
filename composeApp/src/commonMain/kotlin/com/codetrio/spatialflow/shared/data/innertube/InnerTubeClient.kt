@@ -44,6 +44,11 @@ class InnerTubeClient(private val http: HttpClient, private val config: InnerTub
         put("context", webRemixContext()); put("videoId", videoId); playlistId?.let { put("playlistId", it) }
     }
 
+    /** Resolves the watch-next tabs so callers can obtain the official lyrics browse id. */
+    suspend fun next(videoId: String): Result<JsonObject> = request("next") {
+        put("context", webRemixContext()); put("videoId", videoId)
+    }
+
     suspend fun searchSuggestions(query: String): Result<JsonObject> = request("music/get_search_suggestions") {
         put("context", webRemixContext()); put("input", query)
     }

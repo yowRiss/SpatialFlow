@@ -1,6 +1,7 @@
 package com.codetrio.spatialflow.shared.data.lyrics
 
 import io.ktor.client.HttpClient
+import com.codetrio.spatialflow.shared.data.innertube.InnerTubeClient
 
 interface LyricsCatalog {
     suspend fun fetch(track: TrackMetadata): Result<LyricsResult>
@@ -12,20 +13,23 @@ class NetworkLyricsCatalog(
     syncLrcBaseUrl: String,
     paxsenixBaseUrl: String,
     appleMusicConfig: AppleMusicLyricsConfig? = null,
+    innerTube: InnerTubeClient? = null,
     private val scorer: LyricsConfidenceScorer = LyricsConfidenceScorer(),
 ) : LyricsCatalog {
     private val lrcLib = LrcLibClient(http)
     private val syncLrc = SyncLrcClient(http, syncLrcBaseUrl)
     private val paxsenix = PaxsenixLyricsProvider(PaxsenixClient(http, paxsenixBaseUrl))
     private val appleMusic = appleMusicConfig?.let { AppleMusicLyricsProvider(PaxsenixClient(http, paxsenixBaseUrl), it) }
+    private val youTubeMusic = innerTube?.let(::YouTubeMusicLyricsProvider)
 
     override suspend fun fetch(track: TrackMetadata): Result<LyricsResult> = runCatching {
         val candidates = listOfNotNull(
+            youTubeMusic?.fetch(track)?.getOrNull(),
             appleMusic?.fetch(track)?.getOrNull(),
             syncLrc.getLyrics(track).getOrNull()?.toLyricsResult(),
             lrcLib.getLyrics(track).getOrNull()?.toLyricsResult(),
             paxsenix.fetch(track).getOrNull(),
-        ).map { candidate -> candidate.apply { confidence = scorer.score(this, track) } }
+        ).map { candidate -> candidate.apply { if (providerName != "YouTube Music") confidence = scorer.score(this, track) } }
         candidates.maxWithOrNull(compareBy<LyricsResult> { it.isWordByWord }.thenBy { it.confidence })
             ?: error("No lyrics found for ${track.cleanedArtist} — ${track.cleanedTitle}")
     }
