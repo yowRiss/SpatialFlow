@@ -311,6 +311,26 @@ Status: in progress.
   a renewable developer token; a token is never embedded in the binary.
 - [ ] Flatpak libVLC module remains in the active Phase 2/Phase 3 queue.
 
+## Phase 4 — feature-parity ledger
+
+- [x] Local MP3/FLAC/AAC/WAV scanning with jaudiotagger metadata.
+- [x] YouTube Music search, browse, stream resolution, and playback.
+- [x] Unified local/streaming queue, queue reordering, repeat, shuffle, and crossfade.
+- [x] FFmpeg EBU R128 analysis with -14 LUFS gain hand-off.
+- [x] Ten-band EQ, bass boost, loudness enhancer, and playback-rate controls.
+- [ ] Reverb, 8D panning, and fine stereo balance need an owned PCM mixer; libVLC
+  exposes raw PCM callbacks but does not provide an output-side DSP chain.
+- [x] Lyrics fallback: official YouTube Music, Apple Music AMP (configured token),
+  SyncLRC, LRCLIB, Paxsenix Musixmatch/Spotify/YouTube, and embedded tags.
+- [x] Enhanced-LRC/TTML-derived word-by-word karaoke, seek-on-line, and follow scrolling.
+- [x] Animated player mesh/canvas, artwork palette extraction, glass panels, AMOLED,
+  custom accent, and shared wavy seek slider.
+- [x] SQLDelight playlists, favourites, and history; desktop local/stream downloading;
+  jaudiotagger metadata editing; GitHub release checking.
+- [x] Embedded YouTube Music account sign-in/session capture via JCEF.
+- [ ] Flatpak libVLC/JCEF native module packaging and a clean-sandbox end-to-end test.
+- [x] Android-only home widgets and haptics are intentionally skipped/no-op on desktop.
+
 ### Verification log
 
 | Date | Command | Result | Notes |
