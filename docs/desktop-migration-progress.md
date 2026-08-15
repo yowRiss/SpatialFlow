@@ -413,3 +413,4 @@ Status: in progress.
 | 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m' -Dorg.gradle.parallel=false` | pass | Official YouTube Music lyrics browse lookup and primary desktop provider fallback compile successfully. |
 | 2026-08-15 | `./gradlew :composeApp:compileKotlinDesktop --console=plain --no-daemon -Dorg.gradle.jvmargs='-Xmx1024m' -Dorg.gradle.parallel=false` | pass | Desktop metadata writes now run off the Compose UI thread and show an in-progress state. |
 | 2026-08-15 | temporary `flatpak-builder --show-manifest` | pass | The Flatpak manifest parses with the full Compose application image staged as a directory source. A clean runtime build is pending the pinned libVLC module. |
+| 2026-08-15 | GitHub Actions `Flatpak manifest` | pass | CI built and staged the Compose Desktop image, then validated the Flatpak manifest and its complete app-image source layout. |
