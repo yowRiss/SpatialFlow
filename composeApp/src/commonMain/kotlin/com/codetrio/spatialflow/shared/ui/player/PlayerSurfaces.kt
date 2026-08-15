@@ -129,7 +129,7 @@ fun FullPlayer(state: PlayerUiState, queue: List<SongItem>, controller: Playback
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             IconButton(onLyrics) { Icon(Icons.Default.Lyrics, "Lyrics") }
             Text("${queue.size} tracks queued", style = MaterialTheme.typography.labelMedium)
-            IconButton(onSleepTimer) { Icon(Icons.Default.Timer, "Sleep timer") }
+            IconButton(onSleepTimer) { Icon(Icons.Default.Timer, "Sleep timer", tint = if (state.sleepTimerMode != SleepTimerMode.OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface) }
         }
     }
 }

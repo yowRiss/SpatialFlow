@@ -139,8 +139,8 @@ class VlcjPlaybackController : PlaybackController {
 
     private fun onFinished() = synchronized(this) {
         if (isCrossfading) return
-        if (sleepMode == SleepTimerMode.END_OF_SONG) { sleepMode = SleepTimerMode.OFF; mutableState.value = mutableState.value.copy(isPlaying = false); return }
-        if (sleepMode == SleepTimerMode.END_OF_QUEUE && mutableState.value.currentSongIndex == queue.lastIndex) { sleepMode = SleepTimerMode.OFF; mutableState.value = mutableState.value.copy(isPlaying = false); return }
+        if (sleepMode == SleepTimerMode.END_OF_SONG) { sleepMode = SleepTimerMode.OFF; mutableState.value = mutableState.value.copy(isPlaying = false, sleepTimerMode = SleepTimerMode.OFF); return }
+        if (sleepMode == SleepTimerMode.END_OF_QUEUE && mutableState.value.currentSongIndex == queue.lastIndex) { sleepMode = SleepTimerMode.OFF; mutableState.value = mutableState.value.copy(isPlaying = false, sleepTimerMode = SleepTimerMode.OFF); return }
         val current = mutableState.value.currentSongIndex
         when (mutableState.value.repeatMode) {
             RepeatMode.ONE -> playAt(current)
@@ -226,10 +226,11 @@ class VlcjPlaybackController : PlaybackController {
 
     private fun setSleepTimer(mode: SleepTimerMode, minutes: Int?) {
         sleepTimerJob?.cancel(); sleepTimerJob = null; sleepMode = mode
+        mutableState.value = mutableState.value.copy(sleepTimerMode = mode)
         if (mode == SleepTimerMode.CUSTOM && (minutes ?: 0) > 0) {
             sleepTimerJob = playbackScope.launch {
                 delay(minutes!! * 60_000L)
-                synchronized(this@VlcjPlaybackController) { player?.controls()?.setPause(true); sleepMode = SleepTimerMode.OFF }
+                synchronized(this@VlcjPlaybackController) { player?.controls()?.setPause(true); sleepMode = SleepTimerMode.OFF; mutableState.value = mutableState.value.copy(isPlaying = false, sleepTimerMode = SleepTimerMode.OFF) }
             }
         }
     }

@@ -18,6 +18,7 @@ data class PlayerUiState(
     val isCurrentSongDisliked: Boolean = false,
     val repeatMode: RepeatMode = RepeatMode.OFF,
     val isShuffleEnabled: Boolean = false,
+    val sleepTimerMode: SleepTimerMode = SleepTimerMode.OFF,
     val playerBackgroundColor: Int = 0xFF0F0F0F.toInt(),
     val likesCount: String = "Like",
     val isCurrentSongDownloaded: Boolean = false,
